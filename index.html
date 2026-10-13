@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bildstudio">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1c1b1e">
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>RoF Bildstudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,600;1,500&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: neutral dunkle Arbeitsfläche (Farben lassen sich so fair beurteilen); links Bühne + Look-Leiste, rechts Bedienleiste; auf dem Handy untereinander.
+   Bewusst ein einziges dunkles Thema wie in Fotoprogrammen. */
+:root{
+  --bg:#1c1b1e; --panel:#252428; --stage:#141316; --line:#3a383e;
+  --ink:#edecef; --muted:#a29fa8; --accent:#dba3ba; --accent-ink:#2a1520; --good:#8fd1ad; --bad:#f19a9a;
+  --display:"Bodoni Moda", Didot, Georgia, serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:14px;line-height:1.45;padding:16px 16px 32px}
+.app{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+h1{font-family:var(--display);font-weight:600;font-size:28px;margin:0;letter-spacing:-.01em}
+h1 em{font-weight:500;color:var(--accent)}
+.sub{color:var(--muted);margin:0}
+.main{display:flex;flex-direction:column;gap:12px;min-width:0}
+.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:10px;min-height:320px;display:flex;align-items:center;justify-content:center;padding:14px;overflow:hidden}
+.stage.drag{outline:2px dashed var(--accent);outline-offset:-8px}
+#view{display:block;max-width:100%;max-height:68vh;width:auto;height:auto;box-shadow:0 6px 30px rgba(0,0,0,.45)}
+.stage-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.info{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+.looks{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.look{flex:none;width:86px;display:flex;flex-direction:column;gap:5px;align-items:center;background:none;border:0;padding:0;color:var(--ink);cursor:pointer;font:inherit;font-size:12px}
+.look canvas{width:86px;height:86px;object-fit:cover;border-radius:7px;border:2px solid transparent;display:block;background:var(--stage)}
+.look.active canvas{border-color:var(--accent)}
+.look.active span{color:var(--accent);font-weight:600}
+.look:focus-visible canvas{outline:2px solid var(--accent);outline-offset:2px}
+aside{display:flex;flex-direction:column;gap:10px;min-width:0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+summary{cursor:pointer;padding:12px 14px;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--muted);font-weight:400;font-size:18px}
+details[open] summary::after{content:"−"}
+.sec{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+.group{display:flex;flex-direction:column;gap:8px}
+.sl{display:grid;grid-template-columns:96px minmax(0,1fr) 38px;align-items:center;gap:8px}
+.sl label{font-size:13px;cursor:pointer;user-select:none}
+.sl output{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button,select,input[type=text]{font:inherit;font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:7px;padding:7px 10px}
+select,input[type=text]{background:var(--stage);width:100%}
+button{cursor:pointer;font-weight:600;white-space:nowrap}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover:not(:disabled){filter:brightness(1.07);color:var(--accent-ink)}
+button.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field > span{font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.colors label{display:flex;align-items:center;gap:8px;font-size:13px}
+input[type=color]{width:34px;height:28px;border:1px solid var(--line);border-radius:6px;background:none;padding:2px;cursor:pointer}
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.check input{accent-color:var(--accent);width:16px;height:16px}
+.hint{color:var(--muted);font-size:12px;margin:0}
+.status{font-size:13px;min-height:1.2em}
+.status.good{color:var(--good)} .status.bad{color:var(--bad)}
+.overlay{position:fixed;inset:0;background:rgba(10,9,12,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;z-index:10}
+.overlay img{max-width:100%;max-height:72vh}
+.overlay p{max-width:46ch;text-align:center;margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+<div class="app">
+  <header>
+    <h1>RoF <em>Bildstudio</em></h1>
+    <p class="sub">Filter, Zuschnitt und Wasserzeichen für deine Blogbilder. Alles bleibt in deinem Browser.</p>
+  </header>
+
+  <div class="main">
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="Vorschau des bearbeiteten Bildes"></canvas>
+    </div>
+    <div class="stage-bar">
+      <span class="info" id="info">Beispielbild geladen</span>
+      <div class="row">
+        <button id="before" title="Gedrückt halten">Vorher zeigen</button>
+        <button id="resetAll">Alles zurücksetzen</button>
+      </div>
+    </div>
+    <span class="label">Looks · <span id="lookname">Original</span></span>
+    <div class="looks" id="looks" role="list"></div>
+  </div>
+
+  <aside>
+    <details open>
+      <summary>Bild</summary>
+      <div class="sec">
+        <div class="row">
+          <button class="primary" id="openBtn">Bild öffnen</button>
+          <button id="rotL" title="90° nach links">⟲ Drehen</button>
+          <button id="rotR" title="90° nach rechts">⟳ Drehen</button>
+          <button id="flipBtn">Spiegeln</button>
+        </div>
+        <p class="hint">Du kannst ein Bild auch auf die Vorschau ziehen oder mit Strg+V einfügen.</p>
+        <input type="file" id="file" accept="image/*" class="sr">
+      </div>
+    </details>
+
+    <details open>
+      <summary>Anpassen</summary>
+      <div class="sec" id="sliders"></div>
+    </details>
+
+    <details>
+      <summary>Zuschnitt</summary>
+      <div class="sec">
+        <div class="row" id="aspects"></div>
+        <div class="group" id="cropPos">
+          <div class="sl"><label for="cropX">Waagerecht</label><input type="range" id="cropX" min="0" max="100" value="50"><output id="cropXo">50</output></div>
+          <div class="sl"><label for="cropY">Senkrecht</label><input type="range" id="cropY" min="0" max="100" value="50"><output id="cropYo">50</output></div>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Wasserzeichen</summary>
+      <div class="sec">
+        <label class="check"><input type="checkbox" id="wmOn"> Wasserzeichen anzeigen</label>
+        <label class="field"><span>Text</span><input type="text" id="wmText" value="Realm of Fragrance"></label>
+        <div class="two">
+          <label class="field"><span>Position</span>
+            <select id="wmPos"><option value="br">Unten rechts</option><option value="bl">Unten links</option><option value="tr">Oben rechts</option><option value="tl">Oben links</option><option value="c">Mitte</option></select></label>
+          <label class="field"><span>Farbe</span>
+            <select id="wmColor"><option value="light">Hell</option><option value="dark">Dunkel</option></select></label>
+        </div>
+        <div class="sl"><label for="wmSize">Größe</label><input type="range" id="wmSize" min="2" max="10" step="0.5" value="3.5"><output id="wmSizeo">3.5</output></div>
+        <div class="sl"><label for="wmOp">Deckkraft</label><input type="range" id="wmOp" min="10" max="100" value="70"><output id="wmOpo">70</output></div>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Speichern</summary>
+      <div class="sec">
+        <div class="two">
+          <label class="field"><span>Format</span>
+            <select id="fmt"><option value="webp">WebP (klein, ideal für WordPress)</option><option value="jpeg">JPG</option><option value="png">PNG</option></select></label>
+          <label class="field"><span>Breite</span>
+            <select id="maxw"><option value="0">Original</option><option value="2400">2400 px</option><option value="1600">1600 px</option><option value="1200" selected>1200 px (Blog)</option><option value="800">800 px</option></select></label>
+        </div>
+        <div class="sl"><label for="q">Qualität</label><input type="range" id="q" min="50" max="100" value="82"><output id="qo">82</output></div>
+        <label class="field"><span>Dateiname</span><input type="text" id="fname" value="realm-of-fragrance-bild"></label>
+        <p class="hint">Tipp für SEO: Duftname und Marke, klein, mit Bindestrichen. Zum Beispiel „dior-sauvage-flakon“.</p>
+        <div class="row">
+          <button class="primary" id="saveBtn">Bild speichern</button>
+          <button id="batchBtn">Mehrere Bilder als ZIP</button>
+        </div>
+        <input type="file" id="batchFile" accept="image/*" multiple class="sr">
+        <p class="hint">Der ZIP-Stapel nutzt deine aktuellen Einstellungen für alle Bilder.</p>
+        <div class="status" id="status" role="status"></div>
+      </div>
+    </details>
+  </aside>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <img id="ovImg" alt="Fertiges Bild">
+  <p>Speichern geht hier nicht direkt. Halte das Bild gedrückt oder klick mit rechts und wähle „Bild speichern“.</p>
+  <button id="ovClose">Schließen</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ---------- Einstellungen ---------- */
+const DEF = {exposure:0,brightness:0,contrast:0,highlights:0,shadows:0,fade:0,saturation:0,vibrance:0,temperature:0,tint:0,hue:0,
+  sharpen:0,blur:0,grain:0,vignette:0,grade:0,gradeShadow:'#2b6a7f',gradeHigh:'#e3a462',mode:'color'};
+const LOOKS = [
+  ['Original', {}],
+  ['Luxus', {contrast:18,temperature:12,shadows:-10,vignette:35,saturation:-5,grade:22,gradeShadow:'#3a1f3d',gradeHigh:'#e8b45a'}],
+  ['Shop Clean', {exposure:10,brightness:8,contrast:8,temperature:-6,saturation:-8,highlights:10,shadows:15,sharpen:20}],
+  ['Goldene Stunde', {temperature:30,tint:6,contrast:10,vibrance:20,vignette:15,grade:22,gradeShadow:'#5a3a1a',gradeHigh:'#ffc06a'}],
+  ['Moody', {exposure:-10,contrast:25,saturation:-25,shadows:-20,vignette:45,fade:10}],
+  ['Cinematic', {contrast:20,grade:40,gradeShadow:'#1f5d6e',gradeHigh:'#e09a5a',saturation:-10,vignette:25}],
+  ['Film', {fade:25,grain:30,contrast:-5,saturation:-10,temperature:6,grade:16,gradeShadow:'#2e4a3a',gradeHigh:'#f2d2a2'}],
+  ['Pastell', {brightness:12,contrast:-20,saturation:-15,fade:20,tint:8,temperature:4}],
+  ['Rosé', {tint:18,temperature:8,brightness:6,grade:24,gradeShadow:'#5a2a45',gradeHigh:'#ffc2d1',saturation:-5}],
+  ['Frost', {temperature:-30,contrast:10,saturation:-15,brightness:6,highlights:10}],
+  ['Smaragd', {grade:34,gradeShadow:'#0f4a3a',gradeHigh:'#d8f0c8',temperature:-8,contrast:12}],
+  ['Lebendig', {vibrance:45,saturation:10,contrast:15,sharpen:30}],
+  ['Kontrast Pop', {contrast:35,shadows:10,highlights:-10,sharpen:40,vibrance:15}],
+  ['Matt', {fade:35,contrast:-10,saturation:-10}],
+  ['Vintage', {fade:30,temperature:18,saturation:-25,grain:20,vignette:30,contrast:-10}],
+  ['Sepia', {mode:'sepia',contrast:10,vignette:25,grain:10}],
+  ['Noir', {mode:'bw',contrast:40,vignette:40,grain:15,shadows:-10}],
+  ['Silber', {mode:'bw',contrast:-5,fade:15,brightness:8}],
+  ['Verträumt', {blur:6,brightness:10,contrast:-10,fade:15,tint:6,vignette:20}]
+];
+const SLIDERS = [
+  ['Licht', [['exposure','Belichtung',-100,100],['brightness','Helligkeit',-100,100],['contrast','Kontrast',-100,100],['highlights','Lichter',-100,100],['shadows','Schatten',-100,100],['fade','Verblassen',0,100]]],
+  ['Farbe', [['saturation','Sättigung',-100,100],['vibrance','Lebendigkeit',-100,100],['temperature','Wärme',-100,100],['tint','Tönung',-100,100],['hue','Farbton',-180,180]]],
+  ['Effekte', [['sharpen','Schärfe',0,100],['blur','Weichzeichnen',0,100],['grain','Körnung',0,100],['vignette','Vignette',0,100]]],
+  ['Color Grading', [['grade','Stärke',0,100]]]
+];
+const ASPECTS = [['orig','Original',null],['1:1','1:1',1],['4:5','4:5',4/5],['3:2','3:2',3/2],['16:9','16:9 Header',16/9],['2:3','2:3 Pinterest',2/3]];
+
+let P = {...DEF}, lookIdx = 0;
+const crop = {aspect:'orig', x:50, y:50};
+const wm = {on:false, text:'Realm of Fragrance', pos:'br', color:'light', size:3.5, op:70};
+let baseImg = null, rot = 0, flip = false, src = null, prev = null, thumb = null, showBefore = false;
+const $ = id => document.getElementById(id);
+
+/* ---------- Bildverarbeitung ---------- */
+function canvasOf(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+function scaled(source, max){
+  const s = Math.min(1, max / Math.max(source.width, source.height));
+  const c = canvasOf(source.width*s, source.height*s);
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(source, 0, 0, c.width, c.height);
+  return c;
+}
+function cropRect(w, h){
+  const a = ASPECTS.find(x => x[0] === crop.aspect)[2];
+  if (!a) return {sx:0, sy:0, sw:w, sh:h};
+  if (w/h > a){ const sw = h*a; return {sx:(w-sw)*crop.x/100, sy:0, sw, sh:h}; }
+  const sh = w/a; return {sx:0, sy:(h-sh)*crop.y/100, sw:w, sh};
+}
+function hexRgb(h){ const n = parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+
+function blurH(s,t,w,h,r){ const k=1/(2*r+1); for(let y=0;y<h;y++){ const row=y*w*4; for(let c=0;c<3;c++){ let v=0; for(let i=-r;i<=r;i++){ v+=s[row+Math.min(w-1,Math.max(0,i))*4+c]; } for(let x=0;x<w;x++){ t[row+x*4+c]=v*k; v+=s[row+Math.min(w-1,x+r+1)*4+c]-s[row+Math.max(0,x-r)*4+c]; } } t[row+3]=255; } }
+function blurV(s,t,w,h,r){ const k=1/(2*r+1), st=w*4; for(let x=0;x<w;x++){ const col=x*4; for(let c=0;c<3;c++){ let v=0; for(let i=-r;i<=r;i++){ v+=s[Math.min(h-1,Math.max(0,i))*st+col+c]; } for(let y=0;y<h;y++){ t[y*st+col+c]=v*k; v+=s[Math.min(h-1,y+r+1)*st+col+c]-s[Math.max(0,y-r)*st+col+c]; } } } }
+function boxBlur(d,w,h,r){ if (r < 1) return; const tmp = new Uint8ClampedArray(d.length); for (let i=3;i<d.length;i+=4) tmp[i]=d[i]; for (let k=0;k<2;k++){ blurH(d,tmp,w,h,r); blurV(tmp,d,w,h,r); } }
+
+function applyPixels(d, w, h, p){
+  const scale = w / 1000;
+  if (p.blur > 0) boxBlur(d, w, h, Math.max(1, Math.round(p.blur/100 * 20 * scale)));
+  if (p.sharpen > 0){
+    const b = new Uint8ClampedArray(d); boxBlur(b, w, h, Math.max(1, Math.round(1.2*scale)));
+    const a = p.sharpen/100 * 1.6;
+    for (let i=0;i<d.length;i+=4){ d[i]+= a*(d[i]-b[i]); d[i+1]+= a*(d[i+1]-b[i+1]); d[i+2]+= a*(d[i+2]-b[i+2]); }
+  }
+  const ev = Math.pow(2, p.exposure/50), br = p.brightness*0.8;
+  const con = p.contrast >= 0 ? 1 + p.contrast/100*1.2 : 1 + p.contrast/100*0.8;
+  const temp = p.temperature*0.6, tint = p.tint*0.6, sat = 1 + p.saturation/100, vib = p.vibrance/100;
+  const fade = p.fade*0.6, sh = p.shadows*0.9, hl = p.highlights*0.9, grain = p.grain*0.6, vig = p.vignette/100;
+  const gs = hexRgb(p.gradeShadow), gh = hexRgb(p.gradeHigh), ga = p.grade/100*0.9;
+  const gsm = (gs[0]+gs[1]+gs[2])/3, ghm = (gh[0]+gh[1]+gh[2])/3;
+  const gso = [gs[0]-gsm, gs[1]-gsm, gs[2]-gsm], gho = [gh[0]-ghm, gh[1]-ghm, gh[2]-ghm];
+  let hm = null;
+  if (p.hue){ const a = p.hue*Math.PI/180, c = Math.cos(a), s = Math.sin(a);
+    hm = [.213+c*.787-s*.213, .715-c*.715-s*.715, .072-c*.072+s*.928,
+          .213-c*.213+s*.143, .715+c*.285+s*.140, .072-c*.072-s*.283,
+          .213-c*.213-s*.787, .715-c*.715+s*.715, .072+c*.928+s*.072]; }
+  const cx = w/2, cy = h/2;
+  for (let y=0;y<h;y++){
+    const dy = (y-cy)/cy;
+    for (let x=0;x<w;x++){
+      const i = (y*w+x)*4;
+      let r = d[i]*ev, g = d[i+1]*ev, b = d[i+2]*ev;
+      r += temp + br; g += br - tint; b += br - temp;
+      let l = (0.299*r + 0.587*g + 0.114*b)/255; l = l < 0 ? 0 : l > 1 ? 1 : l;
+      const add = sh*(1-l)*(1-l) + hl*l*l; r += add; g += add; b += add;
+      r = (r-128)*con+128; g = (g-128)*con+128; b = (b-128)*con+128;
+      if (p.mode === 'bw'){ const yv = 0.299*r+0.587*g+0.114*b; r = g = b = yv; }
+      else if (p.mode === 'sepia'){ const tr=.393*r+.769*g+.189*b, tg=.349*r+.686*g+.168*b, tb=.272*r+.534*g+.131*b; r=tr; g=tg; b=tb; }
+      else {
+        const yv = 0.299*r+0.587*g+0.114*b, mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+        let cs = (mx-mn)/255; cs = cs > 1 ? 1 : cs;
+        const f = sat * (1 + vib*(1-cs));
+        r = yv + (r-yv)*f; g = yv + (g-yv)*f; b = yv + (b-yv)*f;
+        if (hm){ const nr=hm[0]*r+hm[1]*g+hm[2]*b, ng=hm[3]*r+hm[4]*g+hm[5]*b, nb=hm[6]*r+hm[7]*g+hm[8]*b; r=nr; g=ng; b=nb; }
+      }
+      if (ga){ let l2 = (0.299*r+0.587*g+0.114*b)/255; l2 = l2<0?0:l2>1?1:l2; const ws = ga*(1-l2), wh = ga*l2;
+        r += gso[0]*ws + gho[0]*wh; g += gso[1]*ws + gho[1]*wh; b += gso[2]*ws + gho[2]*wh; }
+      if (fade){ const k = (255-fade)/255; r = fade + r*k; g = fade + g*k; b = fade + b*k; }
+      if (vig){ const dx = (x-cx)/cx, dist = Math.sqrt(dx*dx+dy*dy)/1.414; let t = (dist-0.3)/0.7; t = t<0?0:t>1?1:t; const f = 1 - vig*0.85*t*t*(3-2*t); r*=f; g*=f; b*=f; }
+      if (grain){ const n = (Math.random()-0.5)*grain; r+=n; g+=n; b+=n; }
+      d[i]=r; d[i+1]=g; d[i+2]=b;
+    }
+  }
+}
+function drawWatermark(ctx, w, h){
+  if (!wm.on || !wm.text.trim()) return;
+  const fs = Math.max(10, Math.round(w * wm.size/100)), pad = fs*0.9;
+  ctx.save();
+  ctx.font = `italic 500 ${fs}px "Bodoni Moda", Didot, Georgia, serif`;
+  ctx.globalAlpha = wm.op/100;
+  const tw = ctx.measureText(wm.text).width;
+  let x = w - pad - tw, y = h - pad;
+  if (wm.pos === 'bl'){ x = pad; } else if (wm.pos === 'tr'){ y = pad + fs*0.8; } else if (wm.pos === 'tl'){ x = pad; y = pad + fs*0.8; } else if (wm.pos === 'c'){ x = (w-tw)/2; y = h/2 + fs*0.3; }
+  if (wm.color === 'light'){ ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = fs*0.25; ctx.fillStyle = '#ffffff'; }
+  else { ctx.shadowColor = 'rgba(255,255,255,.35)'; ctx.shadowBlur = fs*0.2; ctx.fillStyle = '#1a1418'; }
+  ctx.fillText(wm.text, x, y);
+  ctx.restore();
+}
+function render(source, p, maxW, withWm, noCrop){
+  const r = noCrop ? {sx:0,sy:0,sw:source.width,sh:source.height} : cropRect(source.width, source.height);
+  let w = r.sw, h = r.sh;
+  if (maxW && w > maxW){ h = h*maxW/w; w = maxW; }
+  const c = canvasOf(w, h), ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, r.sx, r.sy, r.sw, r.sh, 0, 0, c.width, c.height);
+  const im = ctx.getImageData(0, 0, c.width, c.height);
+  applyPixels(im.data, c.width, c.height, p);
+  ctx.putImageData(im, 0, 0);
+  if (withWm) drawWatermark(ctx, c.width, c.height);
+  return c;
+}
+
+/* ---------- Quelle ---------- */
+function orient(img){
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height, side = rot % 180 !== 0;
+  const c = canvasOf(side ? h : w, side ? w : h), x = c.getContext('2d');
+  x.translate(c.width/2, c.height/2); x.rotate(rot*Math.PI/180); if (flip) x.scale(-1, 1);
+  x.drawImage(img, -w/2, -h/2, w, h);
+  return c;
+}
+function rebuild(){
+  src = orient(baseImg); prev = scaled(src, 1100); thumb = scaled(src, 180);
+  renderThumbs(); schedule();
+}
+function setImage(img, name){
+  baseImg = img; rot = 0; flip = false;
+  if (name) $('fname').value = slug(name.replace(/\.[^.]+$/, ''));
+  rebuild();
+}
+function slug(s){ return s.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'bild'; }
+function loadFile(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { res(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Bild konnte nicht gelesen werden')); };
+    img.src = url;
+  });
+}
+async function openFile(file){
+  if (!file || !file.type.startsWith('image/')) { status('Das ist keine Bilddatei.', 'bad'); return; }
+  try { setImage(await loadFile(file), file.name); status(''); }
+  catch(e){ status(e.message + '. Probier JPG, PNG oder WebP.', 'bad'); }
+}
+function sampleImage(){
+  const c = canvasOf(1600, 1200), x = c.getContext('2d');
+  let g = x.createLinearGradient(0,0,1600,1200); g.addColorStop(0,'#e9c9cf'); g.addColorStop(1,'#6b4a63'); x.fillStyle = g; x.fillRect(0,0,1600,1200);
+  g = x.createRadialGradient(560,360,40,560,360,700); g.addColorStop(0,'rgba(255,240,230,.75)'); g.addColorStop(1,'rgba(255,240,230,0)'); x.fillStyle = g; x.fillRect(0,0,1600,1200);
+  x.fillStyle = '#4a3046'; x.fillRect(0,900,1600,300);
+  g = x.createLinearGradient(0,900,0,1200); g.addColorStop(0,'rgba(255,255,255,.18)'); g.addColorStop(1,'rgba(0,0,0,.25)'); x.fillStyle = g; x.fillRect(0,900,1600,300);
+  x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(820,955,260,40,0,0,Math.PI*2); x.fill();
+  const rr = (X,Y,W,H,R) => { x.beginPath(); x.moveTo(X+R,Y); x.arcTo(X+W,Y,X+W,Y+H,R); x.arcTo(X+W,Y+H,X,Y+H,R); x.arcTo(X,Y+H,X,Y,R); x.arcTo(X,Y,X+W,Y,R); x.closePath(); };
+  g = x.createLinearGradient(600,0,1040,0); g.addColorStop(0,'#c98a3c'); g.addColorStop(.45,'#f2c37a'); g.addColorStop(1,'#8a5420');
+  x.fillStyle = g; rr(600,480,440,470,46); x.fill();
+  x.fillStyle = 'rgba(255,255,255,.35)'; rr(640,520,40,380,20); x.fill();
+  x.fillStyle = '#e8d9b6'; x.fillRect(760,430,120,60);
+  g = x.createLinearGradient(720,0,920,0); g.addColorStop(0,'#3a2a20'); g.addColorStop(.5,'#8a6a4a'); g.addColorStop(1,'#2a1e16');
+  x.fillStyle = g; rr(720,270,200,170,14); x.fill();
+  x.fillStyle = 'rgba(250,244,232,.92)'; rr(700,640,240,150,8); x.fill();
+  x.fillStyle = '#4a3046'; x.textAlign = 'center'; x.font = 'italic 600 54px "Bodoni Moda", Georgia, serif'; x.fillText('No. 7', 820, 718);
+  x.font = '600 18px Figtree, sans-serif'; x.fillText('EAU DE PARFUM', 820, 760);
+  return c;
+}
+
+/* ---------- Oberfläche ---------- */
+const view = $('view'), vctx = view.getContext('2d');
+let pending = false;
+function schedule(){ if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; draw(); }); }
+function draw(){
+  if (!prev) return;
+  const out = render(prev, showBefore ? DEF : P, null, !showBefore, false);
+  view.width = out.width; view.height = out.height; vctx.drawImage(out, 0, 0);
+  const r = cropRect(src.width, src.height), mw = +$('maxw').value;
+  let ow = Math.round(r.sw), oh = Math.round(r.sh);
+  if (mw && ow > mw){ oh = Math.round(oh*mw/ow); ow = mw; }
+  $('info').textContent = `Original ${src.width} × ${src.height} px  →  Export ${ow} × ${oh} px`;
+}
+function renderThumbs(){
+  document.querySelectorAll('.look canvas').forEach((cv, i) => {
+    const out = render(thumb, {...DEF, ...LOOKS[i][1]}, null, false, true);
+    const s = Math.min(out.width, out.height);
+    cv.width = 172; cv.height = 172;
+    cv.getContext('2d').drawImage(out, (out.width-s)/2, (out.height-s)/2, s, s, 0, 0, 172, 172);
+  });
+}
+function buildLooks(){
+  const box = $('looks');
+  LOOKS.forEach(([name], i) => {
+    const b = document.createElement('button'); b.className = 'look'; b.setAttribute('role','listitem'); b.type = 'button';
+    b.innerHTML = `<canvas width="172" height="172" aria-hidden="true"></canvas><span>${name}</span>`;
+    b.onclick = () => applyLook(i);
+    box.appendChild(b);
+  });
+  markLook();
+}
+function markLook(){ document.querySelectorAll('.look').forEach((b,i) => b.classList.toggle('active', i === lookIdx)); $('lookname').textContent = lookIdx >= 0 ? LOOKS[lookIdx][0] : 'Eigene Einstellung'; }
+function applyLook(i){ lookIdx = i; P = {...DEF, ...LOOKS[i][1]}; syncSliders(); markLook(); schedule(); }
+
+const sliderRefs = {};
+function buildSliders(){
+  const box = $('sliders');
+  SLIDERS.forEach(([title, items]) => {
+    const g = document.createElement('div'); g.className = 'group';
+    g.innerHTML = `<span class="label">${title}</span>`;
+    items.forEach(([key, label, min, max]) => {
+      const row = document.createElement('div'); row.className = 'sl';
+      row.innerHTML = `<label for="s-${key}" title="Doppelklick setzt zurück">${label}</label><input type="range" id="s-${key}" min="${min}" max="${max}" value="0"><output>0</output>`;
+      const inp = row.querySelector('input'), out = row.querySelector('output');
+      inp.addEventListener('input', () => { P[key] = +inp.value; out.textContent = inp.value; lookIdx = -1; markLook(); schedule(); });
+      row.querySelector('label').addEventListener('dblclick', () => { P[key] = DEF[key]; syncSliders(); schedule(); });
+      sliderRefs[key] = {inp, out};
+      g.appendChild(row);
+    });
+    if (title === 'Color Grading'){
+      const c = document.createElement('div'); c.className = 'colors';
+      c.innerHTML = `<label><input type="color" id="gs" value="${DEF.gradeShadow}"> Schatten</label><label><input type="color" id="gh" value="${DEF.gradeHigh}"> Lichter</label>`;
+      g.appendChild(c);
+      c.querySelector('#gs').addEventListener('input', e => { P.gradeShadow = e.target.value; lookIdx = -1; markLook(); schedule(); });
+      c.querySelector('#gh').addEventListener('input', e => { P.gradeHigh = e.target.value; lookIdx = -1; markLook(); schedule(); });
+    }
+    box.appendChild(g);
+  });
+  const m = document.createElement('label'); m.className = 'field';
+  m.innerHTML = `<span>Modus</span><select id="mode"><option value="color">Farbe</option><option value="bw">Schwarzweiß</option><option value="sepia">Sepia</option></select>`;
+  box.appendChild(m);
+  $('mode').addEventListener('change', e => { P.mode = e.target.value; lookIdx = -1; markLook(); schedule(); });
+}
+function syncSliders(){
+  for (const k in sliderRefs){ sliderRefs[k].inp.value = P[k]; sliderRefs[k].out.textContent = P[k]; }
+  $('gs').value = P.gradeShadow; $('gh').value = P.gradeHigh; $('mode').value = P.mode;
+}
+function buildAspects(){
+  const box = $('aspects');
+  ASPECTS.forEach(([id, label]) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = label; b.dataset.id = id;
+    b.onclick = () => { crop.aspect = id; markAspect(); schedule(); };
+    box.appendChild(b);
+  });
+  markAspect();
+}
+function markAspect(){ document.querySelectorAll('#aspects button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === crop.aspect))); $('cropPos').hidden = crop.aspect === 'orig'; }
+
+function bindRange(id, fn){ const i = $(id), o = $(id+'o'); i.addEventListener('input', () => { if (o) o.textContent = i.value; fn(+i.value); schedule(); }); }
+
+function status(t, c=''){ const s = $('status'); s.textContent = t; s.className = 'status ' + c; }
+
+/* ---------- Speichern ---------- */
+let downloads = null;
+const MIME = {webp:'image/webp', jpeg:'image/jpeg', png:'image/png'};
+const EXT = {'image/webp':'webp', 'image/jpeg':'jpg', 'image/png':'png'};
+function toBlob(canvas){
+  const fmt = $('fmt').value, q = +$('q').value/100;
+  return new Promise(res => canvas.toBlob(res, MIME[fmt], q));
+}
+function kb(n){ return n > 1048576 ? (n/1048576).toFixed(1).replace('.',',') + ' MB' : Math.round(n/1024) + ' KB'; }
+async function deliver(blob, filename, isZip){
+  if (downloads){
+    try { await downloads.save({filename, data: blob}); status(`Gespeichert: ${filename} (${kb(blob.size)})`, 'good'); return; }
+    catch(e){
+      if (e && e.code === 'declined'){ status('Speichern abgebrochen.'); return; }
+      if (e && e.code === 'rate_limited'){ status('Es ist schon ein Speicher-Fenster offen.', 'bad'); return; }
+    }
+  }
+  if (!window.claude){
+    const a = document.createElement('a'), url = URL.createObjectURL(blob);
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    status(`Gespeichert: ${filename} (${kb(blob.size)}). Du findest es in deinen Downloads.`, 'good'); return;
+  }
+  if (isZip){ status('ZIP-Speichern geht in dieser Ansicht nicht. Speichere die Bilder einzeln.', 'bad'); return; }
+  $('ovImg').src = URL.createObjectURL(blob); $('overlay').hidden = false;
+  status(`Fertig: ${filename} (${kb(blob.size)})`, 'good');
+}
+async function saveOne(){
+  if (!src) return;
+  const btn = $('saveBtn'); btn.disabled = true; status('Bild wird berechnet …');
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const out = render(src, P, +$('maxw').value, true, false);
+    const blob = await toBlob(out);
+    const ext = EXT[blob.type] || 'png';
+    const note = MIME[$('fmt').value] !== blob.type ? ' Dein Browser kann dieses Format nicht, deshalb ' + ext.toUpperCase() + '.' : '';
+    await deliver(blob, (slug($('fname').value) || 'bild') + '.' + ext, false);
+    if (note) status($('status').textContent + note, 'good');
+  } catch(e){ status('Speichern hat nicht geklappt. Probier eine kleinere Breite.', 'bad'); }
+  btn.disabled = false;
+}
+async function saveBatch(files){
+  if (!files.length) return;
+  if (!window.JSZip){ status('ZIP-Funktion konnte nicht geladen werden.', 'bad'); return; }
+  const btn = $('batchBtn'); btn.disabled = true;
+  const zip = new JSZip(), used = {};
+  let done = 0, failed = 0;
+  for (const f of files){
+    status(`Bild ${done+failed+1} von ${files.length} wird bearbeitet …`);
+    await new Promise(r => setTimeout(r, 20));
+    try {
+      const img = await loadFile(f);
+      const c = canvasOf(img.naturalWidth, img.naturalHeight); c.getContext('2d').drawImage(img, 0, 0);
+      const blob = await toBlob(render(c, P, +$('maxw').value, true, false));
+      let name = slug(f.name.replace(/\.[^.]+$/, '')); used[name] = (used[name]||0) + 1; if (used[name] > 1) name += '-' + used[name];
+      zip.file(name + '.' + (EXT[blob.type] || 'png'), blob);
+      done++;
+    } catch(e){ failed++; }
+  }
+  status('ZIP wird gepackt …');
+  const zb = await zip.generateAsync({type:'blob'});
+  await deliver(zb, (slug($('fname').value) || 'bilder') + '-stapel.zip', true);
+  if (failed) status($('status').textContent + ` ${failed} Datei(en) übersprungen.`, 'bad');
+  btn.disabled = false; $('batchFile').value = '';
+}
+
+/* ---------- Gemerkte Einstellungen ---------- */
+const KEY = 'rof-bildstudio-v1';
+function remember(){ try { localStorage.setItem(KEY, JSON.stringify({wm, fmt:$('fmt').value, maxw:$('maxw').value, q:$('q').value})); } catch(e){} }
+function recall(){
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY)); if (!s) return;
+    Object.assign(wm, s.wm || {});
+    if (s.fmt) $('fmt').value = s.fmt; if (s.maxw) $('maxw').value = s.maxw; if (s.q){ $('q').value = s.q; $('qo').textContent = s.q; }
+  } catch(e){}
+  $('wmOn').checked = wm.on; $('wmText').value = wm.text; $('wmPos').value = wm.pos; $('wmColor').value = wm.color;
+  $('wmSize').value = wm.size; $('wmSizeo').textContent = wm.size; $('wmOp').value = wm.op; $('wmOpo').textContent = wm.op;
+}
+
+/* ---------- Start ---------- */
+buildLooks(); buildSliders(); buildAspects(); recall(); syncSliders();
+setImage(sampleImage(), null);
+document.fonts && document.fonts.ready.then(() => { if (!baseImg || !baseImg.naturalWidth) setImage(sampleImage(), null); });
+
+$('openBtn').onclick = () => $('file').click();
+$('file').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
+$('rotL').onclick = () => { rot = (rot + 270) % 360; rebuild(); };
+$('rotR').onclick = () => { rot = (rot + 90) % 360; rebuild(); };
+$('flipBtn').onclick = () => { flip = !flip; rebuild(); };
+$('resetAll').onclick = () => { applyLook(0); crop.aspect = 'orig'; crop.x = crop.y = 50; $('cropX').value = $('cropY').value = 50; $('cropXo').textContent = $('cropYo').textContent = '50'; markAspect(); if (rot || flip){ rot = 0; flip = false; rebuild(); } };
+const before = $('before');
+const setBefore = v => { showBefore = v; schedule(); };
+before.addEventListener('pointerdown', () => setBefore(true));
+['pointerup','pointerleave','pointercancel'].forEach(ev => before.addEventListener(ev, () => showBefore && setBefore(false)));
+before.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setBefore(true); } });
+before.addEventListener('keyup', () => setBefore(false));
+
+bindRange('cropX', v => crop.x = v); bindRange('cropY', v => crop.y = v);
+bindRange('wmSize', v => { wm.size = v; remember(); }); bindRange('wmOp', v => { wm.op = v; remember(); });
+bindRange('q', () => remember());
+$('wmOn').onchange = e => { wm.on = e.target.checked; remember(); schedule(); };
+$('wmText').oninput = e => { wm.text = e.target.value; remember(); schedule(); };
+$('wmPos').onchange = e => { wm.pos = e.target.value; remember(); schedule(); };
+$('wmColor').onchange = e => { wm.color = e.target.value; remember(); schedule(); };
+$('fmt').onchange = remember; $('maxw').onchange = () => { remember(); schedule(); };
+$('saveBtn').onclick = saveOne;
+$('batchBtn').onclick = () => $('batchFile').click();
+$('batchFile').onchange = e => saveBatch([...e.target.files]);
+$('ovClose').onclick = () => { $('overlay').hidden = true; };
+
+const stage = $('stage');
+['dragenter','dragover'].forEach(ev => stage.addEventListener(ev, e => { e.preventDefault(); stage.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => stage.addEventListener(ev, () => stage.classList.remove('drag')));
+stage.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) openFile(f); });
+document.addEventListener('paste', e => { const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/')); if (it) openFile(it.getAsFile()); });
+
+(async () => { try { downloads = await window.claude?.use?.('downloads') ?? null; } catch(e){ downloads = null; } })();
+</script>
+
+</body>
+</html>

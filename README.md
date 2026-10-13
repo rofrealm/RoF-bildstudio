@@ -1,9 +1,32 @@
-# RoF Bildstudio
+# RoF Bildstudio 2
 
-Kostenloses Bildbearbeitungs-Tool für Realm of Fragrance.
+Privater Foto-Editor für Realm of Fragrance – aufgebaut wie eine moderne Foto-App, aber ohne Cloud, ohne Konto und ohne Abo.
 
-- 53 Filter in 9 Kategorien, mit Stärke-Regler und Favoriten
-- Anpassen, Effekte (Glow, Lichtleck, Farbstich), Zuschnitt, Wasserzeichen, Rückgängig
-- Export als WebP, JPG oder PNG, auch als ZIP-Stapel
+## Datenschutz
+- Fotos werden ausschließlich im Browser auf deinem Gerät bearbeitet. Kein Upload, keine KI-Cloud.
+- Keine externen Skripte, Schriften oder Tracker (per Content-Security-Policy technisch gesperrt).
+- Beim Export werden Metadaten wie GPS-Ort und Kameradaten entfernt.
+- Projekte liegen nur im Speicher dieses Browsers und lassen sich in „Ich“ löschen.
+- Funktioniert nach dem ersten Laden auch offline (Home-Bildschirm-App).
 
-Alle Bilder werden nur im Browser bearbeitet und nirgendwo hochgeladen.
+## Funktionen
+- **Vorlagen:** 18 Kombi-Looks (z. B. Handy 2013, Flakon-Glanz, Polaroid, Y2K Glitzer)
+- **Filter:** 99 Filter in 17 Kategorien inkl. Film-Simulation, Stärke-Regler, Favoriten
+- **Anpassen:** Zuschnitt (frei/Formate, Drehen, Begradigen, Perspektive), Selektiv, Auto, Glanz, Licht, Blitz, Brillanz, HSL, Kurven und 20 weitere Regler
+- **Retusche:** Glätten, Fleck entfernen, Aufhellen, Abdunkeln, Glanzlicht, Schärfen, Weichzeichnen, Sättigen, Wärmer
+- **Radieren:** Objekte entfernen (lokales Inpainting), Kopierstempel, Mosaik, Unkenntlich
+- **Effekte:** 39 Effekte (Unschärfe, Licht, Glitzer/Kira, Camcorder/VHS, Farbversatz, Riffelglas …)
+- **Zeichnen:** Stift, Marker, Neon, Muster- und Text-Pinsel, Pipette
+- **Sticker, Text, Formen:** frei verschieben, drehen, skalieren; Bewertungssterne und Review-Sticker
+- **Freistellen:** automatisch (ruhiger Hintergrund), Zauberstab, Pinsel
+- **Überlagern:** eigene Fotos oder Licht-Ebenen mit Mischmodi
+- **Hintergrund:** Formate wie 1:1, 9:16, 1200×630 mit Weich-, Spiegel-, Farb- oder Verlaufsfüllung
+- **Verformen**, **Rahmen** (Polaroid, Film, Galerie, Briefmarke …)
+- **Qualität:** HD 2× und Detail+ beim Export
+- **Export:** JPG, WebP, PNG; Teilen/In Fotos sichern; **Stapel** (gleiche Bearbeitung auf viele Fotos, ZIP)
+- **Collage** mit Layouts, Rändern und Formaten
+- Rückgängig/Wiederholen, Vorher-Vergleich, Zoom mit zwei Fingern
+
+## Technik
+Reines HTML/CSS/JavaScript ohne Abhängigkeiten. Läuft auf GitHub Pages. Dateien:
+`index.html`, `css/app.css`, `js/*.js`, `sw.js` (Offline-Cache), `manifest.json`.

@@ -39,3 +39,11 @@ Eigener WebP-Konverter, weil Safari auf dem iPad selbst kein WebP speichern kann
 - Mehrere Bilder auf einmal, Teilen/Sichern oder als Datei laden. Metadaten (z. B. GPS) werden entfernt.
 - Kodierung lokal mit libwebp als WebAssembly aus jSquash (Apache-2.0, siehe `webp/LICENSE-jsquash.txt`).
 - Später geplant: JPEG XL, sobald WordPress `.jxl` annimmt.
+
+## RoF Pin-Studio (Unterseite `pin/`)
+Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest.
+- Adresse: `…/RoF-bildstudio/pin/`, lässt sich einzeln auf den Home-Bildschirm legen.
+- Vier Varianten: Passepartout, Freistehend, Band, Seitlich. Das Werkzeug sucht die ruhige Bildstelle, hält Abstand zum angetippten Motiv und wählt helle oder dunkle Schrift mit passendem Verlauf (Ziel: Kontrast mindestens 4,5 : 1).
+- Ausgabe: JPEG mit Qualität 100 %, 2000 × 3000 oder 1000 × 1500 (2:3). Teilen/In Fotos sichern oder als Datei laden.
+- Schriften lokal im Ordner `pin/fonts/` (Playfair Display, Jost, Cormorant Garamond, SIL Open Font License, siehe `pin/fonts/LICENSE-OFL.txt`).
+- Kein Upload, keine externen Skripte oder Schriften.

@@ -30,3 +30,12 @@ Privater Foto-Editor für Realm of Fragrance – aufgebaut wie eine moderne Foto
 ## Technik
 Reines HTML/CSS/JavaScript ohne Abhängigkeiten. Läuft auf GitHub Pages. Dateien:
 `index.html`, `css/app.css`, `js/*.js`, `sw.js` (Offline-Cache), `manifest.json`.
+
+## RoF WebP (Unterseite `webp/`)
+Eigener WebP-Konverter, weil Safari auf dem iPad selbst kein WebP speichern kann.
+- Adresse: `…/RoF-bildstudio/webp/`, lässt sich einzeln auf den Home-Bildschirm legen.
+- Größe „Für WordPress“: längste Seite höchstens 2560 Pixel, damit WordPress nicht selbst verkleinert. Oder Originalgröße.
+- Qualität „Sehr hoch“ (WebP 92, sichtbar verlustfrei) oder „Verlustfrei“ (pixelgenau, oft größere Dateien).
+- Mehrere Bilder auf einmal, Teilen/Sichern oder als Datei laden. Metadaten (z. B. GPS) werden entfernt.
+- Kodierung lokal mit libwebp als WebAssembly aus jSquash (Apache-2.0, siehe `webp/LICENSE-jsquash.txt`).
+- Später geplant: JPEG XL, sobald WordPress `.jxl` annimmt.

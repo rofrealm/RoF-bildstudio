@@ -28,7 +28,7 @@ Privater Foto-Editor für Realm of Fragrance – aufgebaut wie eine moderne Foto
 - Rückgängig/Wiederholen, Vorher-Vergleich, Zoom mit zwei Fingern
 
 ## Technik
-Reines HTML/CSS/JavaScript ohne Abhängigkeiten. Läuft auf GitHub Pages. Dateien:
+Reines HTML/CSS/JavaScript ohne Abhängigkeiten. Läuft auf GitHub Pages. **GitHub Pages veröffentlicht aus dem Zweig `gh-pages`.** Änderungen immer auch dorthin bringen (`main` und `gh-pages` gleich halten). Dateien:
 `index.html`, `css/app.css`, `js/*.js`, `sw.js` (Offline-Cache), `manifest.json`.
 
 ## RoF WebP (Unterseite `webp/`)

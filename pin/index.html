@@ -2,20 +2,24 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' blob: data:; font-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'">
-<title>RoF Pin-Studio</title>
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>RoF Pins</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RoF Pins">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F7F6F3">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0D0D">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-512.png">
 <link rel="manifest" href="manifest.json">
 <link rel="preload" href="fonts/playfair-display-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/jost-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<style>@font-face{font-family:"Playfair Display";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/playfair-display-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+<link rel="preload" href="fonts/cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Playfair Display";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/playfair-display-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Playfair Display";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/playfair-display-latin-ext-500-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"Jost";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/jost-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Jost";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/jost-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -24,168 +28,193 @@
 @font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/cormorant-garamond-latin-600-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/cormorant-garamond-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 
-/* Layout: Arbeitsfläche links (große Vorschau), Bedienleiste rechts in vier Schritten; auf dem Handy untereinander. */
+/* Aufbau: Vorschau füllt den Bildschirm, Bedienfeld und Menüleiste unten (iPad quer: rechts). Die Seite selbst scrollt nie. */
 :root{
-  --bg:#F7F6F3; --surface:#FFFFFF; --stage:#ECEAE4; --line:#E4E1DA;
-  --ink:#1A1A1A; --muted:#6E6C67; --accent:#3E6B6A; --accent-ink:#FFFFFF;
-  --soft:#EDF2F1; --warn:#9A5B2E; --warn-soft:#F6ECE4; --shadow:rgba(26,26,26,0.08);
-  --display:"Playfair Display", Georgia, "Times New Roman", serif;
-  --sans:Jost, "Helvetica Neue", Arial, sans-serif;
-  --logo:"Cormorant Garamond", Garamond, Georgia, serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#111413; --surface:#191D1C; --stage:#0C0F0E; --line:#2A302E;
-    --ink:#ECEAE5; --muted:#9BA19F; --accent:#86B5B2; --accent-ink:#0F1514;
-    --soft:#1F2928; --warn:#E0A67C; --warn-soft:#2B211A; --shadow:rgba(0,0,0,0.4);
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#111413; --surface:#191D1C; --stage:#0C0F0E; --line:#2A302E;
-  --ink:#ECEAE5; --muted:#9BA19F; --accent:#86B5B2; --accent-ink:#0F1514;
-  --soft:#1F2928; --warn:#E0A67C; --warn-soft:#2B211A; --shadow:rgba(0,0,0,0.4);
+  --bg:#0B0D0D; --bar:#111414; --panel:#161A1A; --card:#212727; --card2:#2C3333; --line:#262D2D;
+  --ink:#F1F0EC; --muted:#93A09E; --dim:#5E6968; --accent:#86B5B2; --accent-ink:#0B1212; --warn:#E3A87E;
+  --sans:Jost,"Helvetica Neue",Arial,sans-serif; --logo:"Cormorant Garamond",Garamond,Georgia,serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;-webkit-text-size-adjust:100%}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.35;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input{-webkit-user-select:text;user-select:text}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
 [hidden]{display:none!important}
-img{max-width:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-.app{max-width:1180px;margin:0 auto;padding-block:calc(env(safe-area-inset-top, 0px) + 20px) calc(env(safe-area-inset-bottom, 0px) + 48px);padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;margin-bottom:20px}
-.eyebrow{display:block;font-family:var(--logo);font-weight:600;font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent)}
-h1{font-family:var(--display);font-weight:500;font-size:34px;line-height:1.1;margin:4px 0 0;text-wrap:balance}
-.lede{margin:0;color:var(--muted);max-width:44ch}
-.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
-@media (min-width:860px){.grid{grid-template-columns:minmax(0,1fr) 380px;gap:28px}}
-.stage{background:var(--stage);border-radius:14px;padding:20px;align-self:start}
-@media (min-width:860px){.stage{position:sticky;top:calc(env(safe-area-inset-top, 0px) + 16px);padding:28px}}
-#main{display:block;width:100%;max-width:min(460px, calc((100vh - 140px) / 1.5));aspect-ratio:2/3;height:auto;margin:0 auto;border-radius:3px;box-shadow:0 10px 30px var(--shadow),0 1px 3px var(--shadow);background:#2a2a2a}
-@media (max-width:859px){#main{max-width:min(380px, 100%)}}
-.stage-meta{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 12px;margin-top:14px;min-height:26px}
-.meta{font-size:13px;color:var(--muted)}
-.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.card h2{display:flex;align-items:center;gap:10px;margin:0;font-family:var(--sans);font-weight:500;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
-.num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--soft);color:var(--accent);font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums}
-.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 15px var(--sans);cursor:pointer}
-.btn:hover{border-color:var(--accent)}
-.primary{width:100%;height:52px;border:none;background:var(--accent);color:var(--accent-ink);font-size:16px}
-.primary:hover{filter:brightness(1.06)}
-.primary[disabled]{opacity:.6;cursor:progress}
-.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--accent)}
-.field{display:flex;flex-direction:column;gap:6px;min-width:0}
-.field label,.group-label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-input[type=text]{width:100%;height:46px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:400 16px var(--sans)}
-input[type=text]::placeholder{color:var(--muted);opacity:.7}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-input[type=text]:focus-visible{outline-offset:0}
-input[type=range]{width:100%;accent-color:var(--accent);height:28px}
-.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;cursor:pointer}
-.switch input{width:20px;height:20px;accent-color:var(--accent)}
-.picker-wrap{display:flex;justify-content:center;background:var(--stage);border-radius:8px;padding:10px}
-#focus{display:block;touch-action:none;cursor:crosshair;border-radius:3px;max-width:100%}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block;flex:none}
+
+.app{position:fixed;left:0;top:0;width:100%;height:100%;display:grid;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top" "stage" "side";
+  padding-top:var(--safe-t)}
+.top{grid-area:top;display:flex;align-items:center;justify-content:space-between;gap:12px;height:54px;padding:0 max(14px,var(--safe-r)) 0 max(14px,var(--safe-l))}
+.logo{display:flex;flex-direction:column;line-height:1}
+.logo .ey{font-family:var(--logo);font-weight:600;font-size:11px;letter-spacing:.3em;color:var(--accent);white-space:nowrap}
+@media (max-width:430px){.logo .ey{font-size:9.5px;letter-spacing:.2em}.pill{padding:0 12px}}
+.logo .nm{font-weight:500;font-size:19px;margin-top:3px}
+.tgrp{display:flex;align-items:center;gap:8px}
+.pill{height:38px;padding:0 14px;border-radius:999px;background:var(--card);display:inline-flex;align-items:center;gap:7px;font-weight:500;font-size:15px}
+.pill.acc{background:var(--accent);color:var(--accent-ink)}
+
+.stage{grid-area:stage;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+#main{display:block;border-radius:3px;box-shadow:0 12px 40px rgba(0,0,0,.55);touch-action:none;background:#222}
+.chip{position:absolute;left:14px;top:10px;font-size:12.5px;padding:4px 10px;border-radius:999px;background:rgba(17,20,20,.82);color:var(--accent);pointer-events:none;display:flex;align-items:center;gap:6px}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.bad{color:var(--warn)}
+.ghint{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);font-size:13px;padding:8px 14px;border-radius:14px;max-width:min(86%,460px);text-align:center;background:rgba(17,20,20,.86);color:var(--ink);pointer-events:none;transition:opacity .4s}
+
+.side{grid-area:side;display:flex;flex-direction:column;min-height:0;background:var(--bar);border-top:1px solid var(--line)}
+.panel{height:212px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px max(14px,var(--safe-r)) 10px max(14px,var(--safe-l))}
+.tabs{display:flex;border-top:1px solid var(--line);padding:0 max(6px,var(--safe-r)) var(--safe-b) max(6px,var(--safe-l));background:var(--bg)}
+.tabs button{flex:1;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--muted);position:relative}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:50%;top:0;width:28px;height:2px;border-radius:2px;background:var(--accent);transform:translateX(-50%)}
+
+/* iPad quer und große Bildschirme: Bedienung rechts */
+@media (min-width:900px) and (orientation:landscape){
+  .app{grid-template-columns:minmax(0,1fr) 372px;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top" "stage side"}
+  .side{border-top:0;border-left:1px solid var(--line)}
+  .panel{height:auto;flex:1;padding:16px 16px 12px}
+}
+
+/* Vorlagen */
+.tscroll{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;margin:0 calc(-1 * max(14px,var(--safe-r))) 0 calc(-1 * max(14px,var(--safe-l)));padding:0 max(14px,var(--safe-r)) 0 max(14px,var(--safe-l))}
+.tscroll::-webkit-scrollbar{display:none}
+.tgroup{display:flex;flex-direction:column;gap:7px;flex:none}
+.glabel{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.trow{display:flex;gap:9px}
+.tb{display:flex;flex-direction:column;gap:5px;width:86px;flex:none;text-align:left}
+.tb canvas{display:block;width:86px;height:129px;border-radius:6px;background:#222;box-shadow:0 0 0 1px var(--line)}
+.tb span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb[aria-pressed="true"] canvas{box-shadow:0 0 0 2px var(--accent)}
+.tb[aria-pressed="true"] span{color:var(--ink)}
+@media (min-width:900px) and (orientation:landscape){
+  .tscroll{flex-direction:column;overflow-x:visible;margin:0;padding:0;gap:16px}
+  .trow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .tb{width:auto}
+  .tb canvas{width:100%;height:auto;aspect-ratio:2/3}
+}
+
+/* Felder und Regler */
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 10px}
+@media (min-width:900px) and (orientation:landscape){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+input[type=text]{width:100%;height:42px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:400 16px var(--sans)}
+input[type=text]::placeholder{color:var(--dim)}
+input[type=text]:focus{border-color:var(--accent);outline:none}
+.rowc{display:flex;flex-wrap:nowrap;align-items:center;gap:10px 16px;margin-top:11px}
+.stack{display:flex;flex-direction:column;gap:9px}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl.inline{flex-direction:row;align-items:center;gap:12px}
+.ctl.inline .lbl{min-width:92px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;flex:1;min-width:0}
+.seg button{flex:1;height:32px;border-radius:7px;color:var(--muted);font-weight:500;font-size:14px;min-width:0;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--card2);color:var(--ink)}
+.sw{display:inline-flex;align-items:center;gap:10px;font-size:14.5px;color:var(--ink);cursor:pointer}
+.sw input{position:absolute;opacity:0;pointer-events:none}
+.sw .tr{width:42px;height:26px;border-radius:999px;background:var(--card2);position:relative;transition:background .2s;flex:none}
+.sw .tr::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked + .tr{background:var(--accent)}
+.sw input:checked + .tr::after{transform:translateX(16px)}
+.sw input:focus-visible + .tr{outline:2px solid var(--accent);outline-offset:2px}
+.range{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.range input{flex:1;min-width:0;accent-color:var(--accent);height:30px}
+.range output{min-width:46px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.btn{height:40px;padding:0 15px;border-radius:10px;background:var(--card);display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:500;font-size:14.5px}
+.btn.acc{background:var(--accent);color:var(--accent-ink)}
 .hint{margin:0;font-size:13px;color:var(--muted)}
-.warn{margin:0;font-size:13px;color:var(--warn);background:var(--warn-soft);padding:8px 10px;border-radius:6px}
-.variants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.var{display:flex;flex-direction:column;gap:6px;padding:7px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;text-align:left;font:inherit;min-width:0}
-.var canvas{display:block;width:100%;aspect-ratio:2/3;height:auto;border-radius:3px;background:#2a2a2a}
-.var-name{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:13.5px;font-weight:500;padding:0 2px}
-.var[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--accent)}
-.dot.bad{background:var(--warn)}
-.chip{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--accent)}
-.chip.bad{background:var(--warn-soft);color:var(--warn)}
-.ctrls{display:flex;flex-direction:column;gap:12px}
-.group{display:flex;flex-direction:column;gap:6px}
-.seg{display:flex;background:var(--soft);border-radius:9px;padding:3px;gap:3px}
-.seg button{flex:1;height:36px;border:none;border-radius:7px;background:transparent;color:var(--muted);font:500 14px var(--sans);cursor:pointer;min-width:0}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);z-index:30;transition:opacity .2s}
-.overlay{position:fixed;inset:0;background:rgba(10,12,12,.72);display:flex;align-items:center;justify-content:center;z-index:40;padding:calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
-.sheet{background:var(--surface);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;align-items:center;max-width:480px;width:100%;max-height:100%;overflow:auto}
-.sheet img{max-height:62vh;width:auto;max-width:100%;border-radius:3px;-webkit-touch-callout:default}
-.sheet p{margin:0;text-align:center}
-.sheet .row{justify-content:center}
-a.btn{text-decoration:none}
+.warn{margin:8px 0 0;font-size:13px;color:var(--warn)}
+
+/* Hinweise und Dialoge */
+.toast{position:fixed;left:50%;top:calc(var(--safe-t) + 62px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:30}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:40;padding:calc(16px + var(--safe-t)) 16px calc(16px + var(--safe-b))}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;max-width:440px;width:100%;max-height:100%;overflow:auto}
+.sheet h2{margin:0;font-weight:500;font-size:18px}
+.sheet img{display:block;max-height:58vh;max-width:100%;margin:0 auto;border-radius:3px;-webkit-touch-callout:default}
+.sheet .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.sheet .big{height:48px;font-size:16px;flex:1}
+a.btn{text-decoration:none;color:var(--ink)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
   <header class="top">
-    <div>
-      <span class="eyebrow">Realm of Fragrance</span>
-      <h1>Pin-Studio</h1>
+    <div class="logo"><span class="ey">REALM OF FRAGRANCE</span><span class="nm">Pins</span></div>
+    <div class="tgrp">
+      <button class="pill" id="openBtn" type="button"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 8"/></svg>Foto</button>
+      <button class="pill acc" id="saveBtn" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Speichern</button>
     </div>
-    <p class="lede">Foto wählen, Text eintippen, Variante antippen, speichern. Schrift, Farben und Abstände folgen dem RoF-Design.</p>
   </header>
 
-  <div class="grid">
-    <section class="stage" aria-label="Vorschau">
-      <canvas id="main" aria-label="Vorschau des Pins"></canvas>
-      <div class="stage-meta">
-        <span id="mainChip" class="chip">Gut lesbar</span>
-        <span class="meta" id="mainMeta">2:3 hochkant</span>
+  <main class="stage" id="stage">
+    <canvas id="main" aria-label="Vorschau des Pins. Text und Foto lassen sich mit dem Finger verschieben."></canvas>
+    <div class="chip" id="chip">Gut lesbar</div>
+    <div class="ghint" id="ghint" hidden>Text oder Foto im Bild ziehen · zwei Finger zoomen</div>
+  </main>
+
+  <aside class="side">
+    <section class="panel" id="panel">
+      <div data-pane="tpl"><div class="tscroll" id="tpls"></div></div>
+
+      <div data-pane="text" hidden>
+        <div class="fgrid">
+          <div class="field"><label class="lbl" for="brand">Marke</label><input id="brand" type="text" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="z. B. Lattafa"></div>
+          <div class="field"><label class="lbl" for="name">Duftname</label><input id="name" type="text" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="z. B. Khamrah"></div>
+          <div class="field"><label class="lbl" for="notes">Kernnoten</label><input id="notes" type="text" autocomplete="off" enterkeyhint="done" placeholder="z. B. Dattel, Zimt und Praline"></div>
+          <div class="field"><label class="lbl" for="extra">Zusatzzeile (leer = aus)</label><input id="extra" type="text" autocomplete="off" enterkeyhint="done" placeholder="z. B. Gourmand"></div>
+        </div>
+        <div class="rowc">
+          <div class="seg" id="extraSeg" role="group" aria-label="Position der Zusatzzeile" style="flex:1;min-width:0"></div>
+          <label class="sw"><input id="url" type="checkbox" checked><span class="tr"></span>Webadresse</label>
+        </div>
+        <p class="warn" id="warn" hidden></p>
+      </div>
+
+      <div data-pane="style" hidden><div class="stack" id="styleBox"></div></div>
+
+      <div data-pane="photo" hidden>
+        <div class="stack">
+          <div class="rowc" style="margin-top:0">
+            <button class="btn acc" id="pickBtn" type="button">Foto wählen</button>
+            <button class="btn" id="cropReset" type="button">Ausschnitt zurücksetzen</button>
+          </div>
+          <div class="ctl inline"><span class="lbl">Zoom</span><div class="range"><input id="zoom" type="range" min="1" max="4" step="0.01" value="1" aria-label="Zoom"><output id="zoomOut">100 %</output></div></div>
+          <p class="hint">Im Bild ziehen verschiebt den Ausschnitt, mit zwei Fingern zoomen. Text ziehen verschiebt den Text.</p>
+          <p class="warn" id="fileErr" hidden>Das Foto ließ sich nicht öffnen. Bitte ein JPEG, PNG oder HEIC aus deinen Fotos wählen.</p>
+        </div>
       </div>
     </section>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button type="button" role="tab" data-tab="tpl" aria-selected="true"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="7" height="10" rx="1.5"/><rect x="13" y="3" width="7" height="6" rx="1.5"/><rect x="13" y="11" width="7" height="10" rx="1.5"/><rect x="4" y="15" width="7" height="6" rx="1.5"/></svg>Vorlagen</button>
+      <button type="button" role="tab" data-tab="text" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text</button>
+      <button type="button" role="tab" data-tab="style" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Stil</button>
+      <button type="button" role="tab" data-tab="photo" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M7 3v14h14"/><path d="M3 7h14v14"/></svg>Foto</button>
+    </nav>
+  </aside>
+</div>
 
-    <div class="panel">
-      <section class="card" aria-labelledby="h-foto">
-        <h2 id="h-foto"><span class="num">1</span>Foto</h2>
-        <div class="row">
-          <label class="btn" for="file">Foto wählen</label>
-          <input id="file" type="file" accept="image/*" hidden>
-          <span class="tag" id="sampleTag">Beispielbild</span>
-        </div>
-        <p class="warn" id="fileErr" hidden>Das Foto ließ sich nicht öffnen. Bitte ein JPEG, PNG oder HEIC aus deinen Fotos wählen.</p>
-        <div class="picker-wrap"><canvas id="focus" aria-label="Motiv antippen"></canvas></div>
-        <p class="hint">Tippe auf dein Motiv. Der helle Rahmen zeigt den Ausschnitt, der Text hält Abstand zum Punkt.</p>
-        <div class="field">
-          <label for="zoom">Ausschnitt vergrößern</label>
-          <input id="zoom" type="range" min="1" max="2.5" step="0.01" value="1">
-        </div>
-      </section>
+<input id="file" type="file" accept="image/*" hidden>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-      <section class="card" aria-labelledby="h-text">
-        <h2 id="h-text"><span class="num">2</span>Text</h2>
-        <div class="field"><label for="brand">Marke</label><input id="brand" type="text" autocomplete="off" placeholder="z. B. Lattafa"></div>
-        <div class="field"><label for="name">Duftname</label><input id="name" type="text" autocomplete="off" placeholder="z. B. Khamrah"></div>
-        <div class="field"><label for="notes">Kernnoten</label><input id="notes" type="text" autocomplete="off" placeholder="z. B. Dattel, Zimt und Praline"></div>
-        <label class="switch" for="url">Webadresse zeigen<input id="url" type="checkbox" checked></label>
-        <p class="hint" id="textHint">Beispieltext aus dem Pin-Plan. Einfach überschreiben.</p>
-        <p class="warn" id="warn" hidden></p>
-      </section>
-
-      <section class="card" aria-labelledby="h-var">
-        <h2 id="h-var"><span class="num">3</span>Variante</h2>
-        <div class="variants" id="variants"></div>
-        <div class="ctrls" id="ctrls"></div>
-      </section>
-
-      <section class="card" aria-labelledby="h-save">
-        <h2 id="h-save"><span class="num">4</span>Speichern</h2>
-        <div class="group">
-          <span class="group-label">Größe</span>
-          <div class="seg" id="sizeSeg"></div>
-        </div>
-        <button class="btn primary" id="save" type="button">Als JPEG speichern</button>
-        <p class="hint" id="saveInfo">JPEG mit Qualität 100 %, hochkant im Format 2:3.</p>
-      </section>
-    </div>
+<div class="overlay" id="saveSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+    <h2 id="saveTitle">Pin speichern</h2>
+    <div class="ctl"><span class="lbl">Größe</span><div class="seg" id="sizeSeg"></div></div>
+    <p class="hint" id="saveInfo"></p>
+    <div class="acts"><button class="btn" id="saveCancel" type="button">Abbrechen</button><button class="btn acc big" id="saveGo" type="button">Als JPEG speichern</button></div>
   </div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
 <div class="overlay" id="result" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="resTitle">
-    <p id="resTitle"><strong>Dein Pin ist fertig</strong></p>
+    <h2 id="resTitle">Dein Pin ist fertig</h2>
     <img id="resImg" alt="Fertiger Pin">
-    <p class="meta" id="resMeta"></p>
+    <p class="hint" id="resMeta"></p>
     <p class="hint">Lange auf das Bild drücken und „Zu Fotos hinzufügen“ wählen.</p>
-    <div class="row"><a class="btn" id="resDl" href="#" download="pin.jpg">Als Datei laden</a><button class="btn" id="resClose" type="button">Schließen</button></div>
+    <div class="acts"><a class="btn" id="resDl" href="#" download="pin.jpg">Als Datei laden</a><button class="btn acc" id="resClose" type="button">Fertig</button></div>
   </div>
 </div>
 <script src="app.js"></script>

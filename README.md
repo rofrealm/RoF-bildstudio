@@ -40,10 +40,15 @@ Eigener WebP-Konverter, weil Safari auf dem iPad selbst kein WebP speichern kann
 - Kodierung lokal mit libwebp als WebAssembly aus jSquash (Apache-2.0, siehe `webp/LICENSE-jsquash.txt`).
 - Später geplant: JPEG XL, sobald WordPress `.jxl` annimmt.
 
-## RoF Pin-Studio (Unterseite `pin/`)
-Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest.
+## RoF Pins (Unterseite `pin/`)
+Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest. Version 2: neu aufgebaut wie ein Foto-Editor.
 - Adresse: `…/RoF-bildstudio/pin/`, lässt sich einzeln auf den Home-Bildschirm legen.
-- Vier Varianten: Passepartout, Freistehend, Band, Seitlich. Das Werkzeug sucht die ruhige Bildstelle, hält Abstand zum angetippten Motiv und wählt helle oder dunkle Schrift mit passendem Verlauf (Ziel: Kontrast mindestens 4,5 : 1).
+- Vorschau immer sichtbar, Menüleiste unten (Vorlagen, Text, Stil, Foto), die Seite scrollt nie. iPad quer: Bedienung rechts.
+- Direkt im Bild bearbeiten: Text mit dem Finger verschieben, Foto ziehen für den Ausschnitt, zwei Finger zum Zoomen. Hilfslinien rasten mittig ein.
+- 12 Vorlagen: Papier (Passepartout, Band, Polaroid, Etikett), Auf dem Foto (Freistehend, Seitlich, Zentriert, Milchglas), Editorial (Magazin, Bogenfenster, Geteilt, Rahmenlinie).
+- Optionale Zusatzzeile, oben als Rubrik oder unten als Hinweis. Flächen in Papier, Weiß, Petrol oder Dunkel, Textgröße 80 bis 130 %.
+- Schatten hinter dem Text werden stufenlos aus der Bildhelligkeit berechnet (Ziel: Kontrast mindestens 4,5 : 1) und gleiten beim Verschieben weich mit.
 - Ausgabe: JPEG mit Qualität 100 %, 2000 × 3000 oder 1000 × 1500 (2:3). Teilen/In Fotos sichern oder als Datei laden.
+- Texte und Einstellungen bleiben in diesem Browser gespeichert, Fotos nicht.
 - Schriften lokal im Ordner `pin/fonts/` (Playfair Display, Jost, Cormorant Garamond, SIL Open Font License, siehe `pin/fonts/LICENSE-OFL.txt`).
 - Kein Upload, keine externen Skripte oder Schriften.

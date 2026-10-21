@@ -1,9 +1,9 @@
-/* RoF Pins 2: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
+/* RoF Pins 3: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
 (function(){
 "use strict";
 
 /* ---------- Grundwerte ---------- */
-const PETROL='#3E6B6A', PAPER='#F2F0EB', INK='#1a1a1a', GREY='#8a8a8a', MINT='#D3E6E4';
+const PETROL='#3E6B6A', PAPER='#F2F0EB', INK='#1a1a1a', GREY='#8a8a8a';
 const F_T='"Playfair Display", Georgia, "Times New Roman", serif';
 const F_S='Jost, "Helvetica Neue", Arial, sans-serif';
 const F_L='"Cormorant Garamond", Garamond, Georgia, serif';
@@ -14,27 +14,43 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const sstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;};
 
+const BROWN='#8C5E34', OFF=PAPER;
+/* Flächen: nur RoF-Farben. "Off-White Papier" bekommt eine zarte Papierstruktur. */
 const SURF={
-  paper:{bg:PAPER,dark:false,name:'Papier'},
-  white:{bg:'#FAFAF7',dark:false,name:'Weiß'},
+  off:{bg:OFF,dark:false,name:'Off-White'},
+  offp:{bg:OFF,dark:false,tex:true,name:'Off-White Papier'},
   petrol:{bg:PETROL,dark:true,name:'Petrol'},
-  dark:{bg:'#1B1F1E',dark:true,name:'Dunkel'}
+  brown:{bg:BROWN,dark:true,name:'Braun'}
 };
+const SURF_OLD={paper:'off',white:'off',dark:'petrol'}; /* gespeicherte Werte aus RoF Pins 2 */
 
 /* Vorlagen: Gruppe, Name, welche Einstellungen es gibt, Standardwerte */
 const TPLS=[
-  {key:'pass',   group:'Papier',      name:'Passepartout', ctl:['surf','scale'],               def:{surf:'paper'}},
-  {key:'band',   group:'Papier',      name:'Band',         ctl:['surf','scale','reset'],       def:{surf:'paper'}, drag:true},
-  {key:'polaroid',group:'Papier',     name:'Polaroid',     ctl:['surf','scale'],               def:{surf:'white'}},
-  {key:'label',  group:'Papier',      name:'Etikett',      ctl:['surf','scale','reset'],       def:{surf:'paper'}, drag:true},
-  {key:'free',   group:'Auf dem Foto',name:'Freistehend',  ctl:['color','align','scale','reset'],def:{align:'left'}, drag:true},
-  {key:'side',   group:'Auf dem Foto',name:'Seitlich',     ctl:['color','scale','reset'],      def:{}, drag:true},
-  {key:'center', group:'Auf dem Foto',name:'Zentriert',    ctl:['color','scale','reset'],      def:{}, drag:true},
-  {key:'glass',  group:'Auf dem Foto',name:'Milchglas',    ctl:['color','scale','reset'],      def:{}, drag:true},
-  {key:'cover',  group:'Editorial',   name:'Magazin',      ctl:['color','scale','reset'],      def:{}, drag:true},
-  {key:'arch',   group:'Editorial',   name:'Bogenfenster', ctl:['surf','scale'],               def:{surf:'paper'}},
-  {key:'split',  group:'Editorial',   name:'Geteilt',      ctl:['surf','scale','reset'],       def:{surf:'petrol'}, drag:true},
-  {key:'frame',  group:'Editorial',   name:'Rahmenlinie',  ctl:['color','scale','reset'],      def:{}, drag:true}
+  {key:'center',   group:'Auf dem Foto', name:'Zentriert',      ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'cover',    group:'Auf dem Foto', name:'Magazin',        ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'masthead', group:'Auf dem Foto', name:'Titelseite',     ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'lower',    group:'Auf dem Foto', name:'Unteres Drittel',ctl:['color','scale'],         def:{}},
+  {key:'right',    group:'Auf dem Foto', name:'Rechtsbündig',   ctl:['color','scale'],         def:{}},
+  {key:'midline',  group:'Auf dem Foto', name:'Mittellinie',    ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'headline', group:'Auf dem Foto', name:'Schlagzeile',    ctl:['color','scale'],         def:{}},
+  {key:'underline',group:'Auf dem Foto', name:'Unterstrichen',  ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'colfoot',  group:'Auf dem Foto', name:'Spaltenfuß',     ctl:['color','scale'],         def:{}},
+  {key:'issue',    group:'Auf dem Foto', name:'Ausgabe',        ctl:['color','scale'],         def:{}},
+  {key:'spine',    group:'Auf dem Foto', name:'Buchrücken',     ctl:['color','scale'],         def:{}},
+  {key:'label',    group:'Mit Fläche',   name:'Etikett',        ctl:['surf','scale','reset'],  def:{surf:'off'}, drag:true},
+  {key:'headband', group:'Mit Fläche',   name:'Kopfband',       ctl:['surf','scale'],          def:{surf:'off'}},
+  {key:'footband', group:'Mit Fläche',   name:'Fußband',        ctl:['surf','scale'],          def:{surf:'off'}},
+  {key:'corner',   group:'Mit Fläche',   name:'Ecke',           ctl:['surf','scale'],          def:{surf:'off'}},
+  {key:'note',     group:'Mit Fläche',   name:'Notiz',          ctl:['surf','scale'],          def:{surf:'off'}},
+  {key:'column',   group:'Mit Fläche',   name:'Spalte',         ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'colorfoot',group:'Mit Fläche',   name:'Farbfuß',        ctl:['surf','scale'],          def:{surf:'petrol'}},
+  {key:'colorhead',group:'Mit Fläche',   name:'Farbkopf',       ctl:['surf','scale'],          def:{surf:'brown'}},
+  {key:'pass',     group:'Papierseite',  name:'Passepartout',   ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'polaroid', group:'Papierseite',  name:'Polaroid',       ctl:['surf','scale'],          def:{surf:'off'}},
+  {key:'feuilleton',group:'Papierseite', name:'Feuilleton',     ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'chapter',  group:'Papierseite',  name:'Kapitel',        ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'gallery',  group:'Papierseite',  name:'Galerie',        ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'window',   group:'Papierseite',  name:'Fenster',        ctl:['surf','scale'],          def:{surf:'offp'}}
 ];
 const TPL={}; TPLS.forEach(t=>{TPL[t.key]=t;});
 
@@ -42,10 +58,10 @@ const S={
   full:null, prev:null, isSample:true, imgId:0,
   crop:{x:0.5,y:0.5,z:1},
   text:{brand:'House of Thêom', name:'Heaven’s Reserve', notes:'Pflaume, Rum und Zimt', extra:'', extraPos:'top'},
-  url:true, tpl:'free', size:2000, tab:'tpl',
+  url:true, tpl:'lower', size:2000, tab:'tpl',
   opt:{}
 };
-function resetOpt(){TPLS.forEach(t=>{S.opt[t.key]=Object.assign({color:'auto',align:'left',surf:'paper',scale:1,pos:null},t.def);});}
+function resetOpt(){TPLS.forEach(t=>{S.opt[t.key]=Object.assign({color:'auto',align:'left',surf:'off',scale:1,pos:null},t.def);});}
 resetOpt();
 
 /* ---------- Speichern der Einstellungen (nur in diesem Browser) ---------- */
@@ -57,7 +73,7 @@ function loadState(){
     if(typeof d.url==='boolean')S.url=d.url;
     if(d.tpl&&TPL[d.tpl])S.tpl=d.tpl;
     if(d.size===1000||d.size===2000)S.size=d.size;
-    if(d.opt)Object.keys(d.opt).forEach(k=>{if(S.opt[k]){const o=d.opt[k];['color','align','surf'].forEach(p=>{if(typeof o[p]==='string')S.opt[k][p]=o[p];}); if(typeof o.scale==='number')S.opt[k].scale=clamp(o.scale,0.8,1.3);}});
+    if(d.opt)Object.keys(d.opt).forEach(k=>{if(S.opt[k]){const o=d.opt[k];['color','align'].forEach(p=>{if(typeof o[p]==='string')S.opt[k][p]=o[p];}); if(typeof o.surf==='string'){const v=SURF[o.surf]?o.surf:SURF_OLD[o.surf]; if(v&&TPL[k].ctl.includes('surf'))S.opt[k].surf=v;} if(typeof o.scale==='number')S.opt[k].scale=clamp(o.scale,0.8,1.3);}});
   }catch(_){}
 }
 let saveT=0;
@@ -74,15 +90,17 @@ function saveState(){
 /* ---------- Text-Hilfen ---------- */
 function spacedW(ctx,t,sp){const ch=Array.from(t);let w=0;for(const c of ch)w+=ctx.measureText(c).width;return w+sp*Math.max(0,ch.length-1);}
 function drawSpaced(ctx,t,x,y,sp,align){
-  const w=spacedW(ctx,t,sp); let cx=align==='center'?x-w/2:x; ctx.textAlign='left';
+  const w=spacedW(ctx,t,sp); let cx=align==='center'?x-w/2:(align==='right'?x-w:x); ctx.textAlign='left';
   for(const c of Array.from(t)){ctx.fillText(c,cx,y);cx+=ctx.measureText(c).width+sp;}
 }
-function wrapLines(ctx,text,maxW){
-  const words=text.trim().split(/\s+/).filter(Boolean); if(!words.length)return [];
+/* Eigene Zeilenumbrüche (Enter) bleiben erhalten; nur zu lange Zeilen werden zusätzlich umbrochen */
+function paras(text){return String(text||'').split(/\r?\n/).map(p=>p.trim().replace(/\s+/g,' ')).filter(Boolean);}
+function wrapPara(ctx,text,maxW,balance){
+  const words=text.split(' ').filter(Boolean); if(!words.length)return [];
   const lines=[]; let cur=words[0];
   for(let i=1;i<words.length;i++){const t=cur+' '+words[i]; if(ctx.measureText(t).width<=maxW)cur=t; else{lines.push(cur);cur=words[i];}}
   lines.push(cur);
-  if(lines.length===2){ /* zwei Zeilen möglichst gleich lang */
+  if(balance&&lines.length===2){ /* zwei Zeilen möglichst gleich lang */
     let best=null;
     for(let k=1;k<words.length;k++){
       const a=words.slice(0,k).join(' '), b=words.slice(k).join(' ');
@@ -93,9 +111,18 @@ function wrapLines(ctx,text,maxW){
   }
   return lines;
 }
+function wrapLines(ctx,text,maxW){
+  const p=paras(text); if(!p.length)return [];
+  if(p.length===1)return wrapPara(ctx,p[0],maxW,true);
+  const out=[]; p.forEach(x=>{wrapPara(ctx,x,maxW,false).forEach(l=>out.push(l));}); return out;
+}
 function fitLines(ctx,text,fontFn,maxSize,minSize,maxW,maxLines){
+  const pc=paras(text).length; maxLines=Math.max(maxLines,pc);
   let size=maxSize, lines=[];
   const step=Math.max(1,maxSize/60);
+  if(pc>1){ /* eigene Umbrüche: jede Zeile möglichst ungebrochen, Schrift dafür bis 60 % kleiner */
+    for(let z=maxSize;z>=Math.max(minSize,maxSize*0.6);z-=step){ctx.font=fontFn(z); const l=wrapLines(ctx,text,maxW); if(l.length===pc)return {size:z,lines:l};}
+  }
   for(;;){
     ctx.font=fontFn(size); lines=wrapLines(ctx,text,maxW);
     const ok=lines.length<=maxLines&&lines.every(l=>ctx.measureText(l).width<=maxW);
@@ -107,11 +134,13 @@ function fitLines(ctx,text,fontFn,maxSize,minSize,maxW,maxLines){
 }
 function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
-/* Textblock: Zusatzzeile oben (als Rubrik), Marke, Duftname, Linie, Kernnoten, Zusatzzeile unten (als Hinweis) */
+/* Textblock: Zusatzzeile oben (als Rubrik), Marke, Titel, Linie, Kernnoten, Zusatzzeile unten (als Hinweis).
+   o.skip blendet Teile aus, o.notesCaps setzt die Kernnoten gesperrt in Versalien, o.ruleW/ruleH/ruleRole formen die Linie. */
 function buildBlock(ctx,s,maxW,o){
-  const T=S.text, k=o.scale||1, items=[]; let w=0;
-  const extra=T.extra.trim(), brand=T.brand.trim(), name=T.name.trim(), notes=T.notes.trim();
+  const T=S.text, k=o.scale||1, items=[], sk=o.skip||{}; let w=0;
+  const extra=sk.extra?'':T.extra.trim(), brand=sk.brand?'':T.brand.trim(), name=sk.title?'':paras(T.name).join('\n'), notes=sk.notes?'':T.notes.trim();
   maxW=Math.max(maxW,40*s);
+  let titleY=null, titleH=0, titleW=0;
   if(extra&&T.extraPos==='top'){
     const txt=extra.toUpperCase(); let sz=15*s*Math.min(k,1.15);
     for(;;){ctx.font=`500 ${sz}px ${F_S}`; if(spacedW(ctx,txt,sz*0.22)+30*s<=maxW||sz<=8*s)break; sz-=0.5*s;}
@@ -121,24 +150,33 @@ function buildBlock(ctx,s,maxW,o){
     items.push({k:'gap',h:22*s});
   }
   if(brand){
-    const txt=brand.toUpperCase(); let sz=22*s*Math.min(k,1.15);
+    const txt=brand.toUpperCase(); let sz=(o.brandSize||22)*s*Math.min(k,1.15);
     for(;;){ctx.font=`500 ${sz}px ${F_S}`; if(spacedW(ctx,txt,sz*0.2)<=maxW||sz<=9*s)break; sz-=0.5*s;}
     w=Math.max(w,spacedW(ctx,txt,sz*0.2));
-    items.push({k:'sp',text:txt,font:`500 ${sz}px ${F_S}`,sp:sz*0.2,h:sz*1.3,role:'eyebrow'});
-    items.push({k:'gap',h:18*s});
+    items.push({k:'sp',text:txt,font:`500 ${sz}px ${F_S}`,sp:sz*0.2,w:spacedW(ctx,txt,sz*0.2),h:sz*1.3,role:'eyebrow'});
+    items.push({k:'gap',h:(o.brandGap||18)*s});
   }
   if(name){
     const f=z=>`500 ${z}px ${F_T}`;
     const r=fitLines(ctx,name,f,o.titleMax*s*k,(o.titleMin||38)*s*Math.min(k,1),maxW,o.titleLines||2);
-    ctx.font=f(r.size); r.lines.forEach(l=>{w=Math.max(w,ctx.measureText(l).width);});
-    items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.12,h:r.size*1.12*r.lines.length,role:'title'});
+    ctx.font=f(r.size); r.lines.forEach(l=>{titleW=Math.max(titleW,ctx.measureText(l).width);}); w=Math.max(w,titleW);
+    items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.12,h:r.size*1.12*r.lines.length,role:'title',tw:titleW});
   }
   if(notes){
-    if(name){items.push({k:'gap',h:24*s});items.push({k:'rule',h:2*s,w:56*s,role:'rule'});items.push({k:'gap',h:22*s});}
-    const f=z=>`400 ${z}px ${F_S}`;
-    const r=fitLines(ctx,notes,f,(o.notesMax||30)*s*k,17*s,maxW,o.notesLines||2);
-    ctx.font=f(r.size); r.lines.forEach(l=>{w=Math.max(w,ctx.measureText(l).width);});
-    items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.35,h:r.size*1.35*r.lines.length,role:'notes'});
+    if(name&&!o.noRule){items.push({k:'gap',h:24*s});items.push({k:'rule',h:(o.ruleH||2)*s,w:(o.ruleW||56)*s,role:o.ruleRole||'rule'});items.push({k:'gap',h:22*s});}
+    else if(name)items.push({k:'gap',h:20*s});
+    let done=false;
+    if(o.notesCaps){
+      const txt=notes.toUpperCase(); let sz=(o.notesMax||19)*s*k;
+      for(;;){ctx.font=`500 ${sz}px ${F_S}`; if(spacedW(ctx,txt,sz*0.16)<=maxW||sz<=12*s)break; sz-=0.5*s;}
+      if(spacedW(ctx,txt,sz*0.16)<=maxW){const tw=spacedW(ctx,txt,sz*0.16); w=Math.max(w,tw); items.push({k:'sp',text:txt,font:`500 ${sz}px ${F_S}`,sp:sz*0.16,w:tw,h:sz*1.4,role:'notes'}); done=true;}
+    }
+    if(!done){
+      const f=z=>`400 ${z}px ${F_S}`;
+      const r=fitLines(ctx,notes,f,(o.notesMax||30)*s*k,(o.notesMin||17)*s,maxW,o.notesLines||2);
+      ctx.font=f(r.size); r.lines.forEach(l=>{w=Math.max(w,ctx.measureText(l).width);});
+      items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.35,h:r.size*1.35*r.lines.length,role:'notes'});
+    }
   }
   if(extra&&T.extraPos==='bottom'){
     items.push({k:'gap',h:20*s});
@@ -149,42 +187,102 @@ function buildBlock(ctx,s,maxW,o){
   }
   while(items.length&&items[0].k==='gap')items.shift();
   while(items.length&&items[items.length-1].k==='gap')items.pop();
-  return {items,h:items.reduce((a,i)=>a+i.h,0),w};
+  let cy=0; items.forEach(it=>{if(it.role==='title'){titleY=cy;titleH=it.h;} cy+=it.h;});
+  return {items,h:cy,w,titleY,titleH,titleW};
 }
 function drawBlock(ctx,b,x,y,align,col){
   let cy=y; ctx.textBaseline='middle';
+  const ax=w=>align==='center'?x-w/2:(align==='right'?x-w:x);
   for(const it of b.items){
     if(it.k==='gap'){cy+=it.h;continue;}
-    if(it.k==='rule'){ctx.fillStyle=col.rule;ctx.fillRect(align==='center'?x-it.w/2:x,cy,it.w,it.h);cy+=it.h;continue;}
+    if(it.k==='rule'){ctx.fillStyle=col[it.role]||col.rule;ctx.fillRect(ax(it.w),cy,it.w,it.h);cy+=it.h;continue;}
     if(it.k==='pill'){
-      const px=align==='center'?x-it.w/2:x;
+      const px=ax(it.w);
       ctx.strokeStyle=col.pill; ctx.lineWidth=it.lw; rr(ctx,px+it.lw/2,cy+it.lw/2,it.w-it.lw,it.h-it.lw,it.h/2); ctx.stroke();
       ctx.fillStyle=col.pill; ctx.font=it.font; drawSpaced(ctx,it.text,px+it.w/2+it.sp/2,cy+it.h/2,it.sp,'center'); cy+=it.h; continue;
     }
     ctx.fillStyle=col[it.role]; ctx.font=it.font;
     if(it.k==='sp'){drawSpaced(ctx,it.text,x,cy+it.h/2,it.sp,align);cy+=it.h;continue;}
-    ctx.textAlign=align==='center'?'center':'left';
+    ctx.textAlign=align==='center'?'center':(align==='right'?'right':'left');
     for(const l of it.lines){ctx.fillText(l,x,cy+it.lh/2);cy+=it.lh;}
   }
 }
+/* Wortmarke in Versalien (Buchstabenabstand 0,3em), darunter die Webadresse */
+const WM='REALM OF FRAGRANCE', WEB='realmoffragrance.com';
 function brandH(s,k){k=k||1;return 24*s*k*1.2+(S.url?12*s*k+17*s*k*1.2:0);}
-function brandW(ctx,s,k){k=k||1;const L=24*s*k;ctx.font=`600 ${L}px ${F_L}`;return spacedW(ctx,'REALM OF FRAGRANCE',L*0.3);}
-function drawBrand(ctx,s,cx,top,col,k){
-  k=k||1; ctx.textBaseline='middle'; const L=24*s*k;
+function brandW(ctx,s,k){k=k||1;const L=24*s*k;ctx.font=`600 ${L}px ${F_L}`;return spacedW(ctx,WM,L*0.3);}
+function fitK(ctx,s,maxW,kMax){return Math.min(kMax||1,maxW/brandW(ctx,s,1));}
+function drawBrand(ctx,s,x,top,col,k,align){
+  k=k||1; align=align||'center'; ctx.textBaseline='middle'; const L=24*s*k;
   ctx.font=`600 ${L}px ${F_L}`; ctx.fillStyle=col.logo;
-  drawSpaced(ctx,'REALM OF FRAGRANCE',cx+L*0.15,top+L*0.6,L*0.3,'center');
-  if(S.url){const u=17*s*k; ctx.font=`400 ${u}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,'realmoffragrance.com',cx,top+L*1.2+12*s*k+u*0.6,u*0.06,'center');}
+  drawSpaced(ctx,WM,align==='center'?x+L*0.15:x,top+L*0.6,L*0.3,align);
+  if(S.url){const u=17*s*k; ctx.font=`400 ${u}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,WEB,x,top+L*1.2+12*s*k+u*0.6,u*0.06,align);}
 }
+function hline(ctx,x0,x1,y,h,c){ctx.fillStyle=c;ctx.fillRect(x0,y,x1-x0,h);}
 
-/* Farben */
-function colsMode(mode,onPetrol){
-  if(mode==='light')return {eyebrow:onPetrol?MINT:'#D3E6E4',title:'#FAFAF7',rule:onPetrol?MINT:'#D3E6E4',notes:'rgba(250,250,247,0.93)',hint:'rgba(250,250,247,0.8)',pill:'#FAFAF7',logo:'#FAFAF7',url:'rgba(250,250,247,0.82)',line:'rgba(250,250,247,0.9)'};
-  return {eyebrow:PETROL,title:INK,rule:PETROL,notes:'#2E2E2C',hint:'#4a4a4a',pill:PETROL,logo:PETROL,url:'#4a4a4a',line:'rgba(26,26,26,0.75)'};
+/* Farben: nur RoF-Farben (Petrol, Braun, Off-White, Text, Nebentext, Labels) */
+const LT='242,240,235';
+function colsMode(mode){
+  if(mode==='light')return {eyebrow:OFF,title:OFF,rule:OFF,rule2:OFF,notes:`rgba(${LT},0.94)`,hint:`rgba(${LT},0.84)`,pill:OFF,logo:OFF,url:`rgba(${LT},0.86)`,line:`rgba(${LT},0.7)`};
+  return {eyebrow:PETROL,title:INK,rule:PETROL,rule2:BROWN,notes:INK,hint:'#4a4a4a',pill:PETROL,logo:PETROL,url:'#4a4a4a',line:'rgba(26,26,26,0.5)'};
 }
 function colsSurf(key){
-  const sf=SURF[key]||SURF.paper;
-  if(sf.dark)return colsMode('light',key==='petrol');
-  return Object.assign(colsMode('dark'),{url:GREY});
+  const sf=SURF[key]||SURF.off;
+  if(sf.dark)return colsMode('light');
+  return Object.assign(colsMode('dark'),{notes:'#4a4a4a',url:GREY,line:'rgba(26,26,26,0.28)'});
+}
+function surfC(key){const sf=SURF[key]||SURF.off; return sf.dark?contrastV(0.94,lumHex(sf.bg)):contrastV(0.1,lumHex(sf.bg));}
+function lumHex(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return (0.2126*r+0.7152*g+0.0722*b)/255;}
+
+/* ---------- Papierstruktur ----------
+   Feste Zufallszahlen: Vorschau und gespeichertes Bild sehen gleich aus. Werte vom Pinterest-Karten-Standard, für Pins auf 60 % gesenkt.
+   Papierzahn 0,014 als Relief mit seitlichem Licht, rund 9000 Fasern 0,065, Wolkung 0,0035, Rand 0,02. Kein Filmkorn, keine Fleckchen. */
+const TEXK=0.6, TEX=new Map();
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function noiseGrid(W,H,cell,seed){const r=rng(seed),gw=Math.ceil(W/cell)+3,gh=Math.ceil(H/cell)+3,g=new Float32Array(gw*gh);for(let i=0;i<g.length;i++)g[i]=r()*2-1;return {cell,gw,g};}
+function noiseAt(G,px,py){
+  const fx=px/G.cell, fy=py/G.cell, ix=fx|0, iy=fy|0, tx=fx-ix, ty=fy-iy, sx=tx*tx*(3-2*tx), sy=ty*ty*(3-2*ty), i=iy*G.gw+ix, g=G.g;
+  const a=g[i]+(g[i+1]-g[i])*sx, b=g[i+G.gw]+(g[i+G.gw+1]-g[i+G.gw])*sx; return a+(b-a)*sy;
+}
+function paperTex(W,H,bg){
+  const key=W+'x'+H+bg; if(TEX.has(key))return TEX.get(key);
+  if(TEX.size>4)TEX.clear();
+  const s=W/1000, c=mk(W,H), x=c.getContext('2d');
+  const R0=parseInt(bg.slice(1,3),16), G0=parseInt(bg.slice(3,5),16), B0=parseInt(bg.slice(5,7),16);
+  const img=x.createImageData(W,H), d=img.data;
+  const tooth=noiseGrid(W,H,Math.max(1,1.5*s),11), c1=noiseGrid(W,H,190*s,23), c2=noiseGrid(W,H,70*s,37);
+  const T=new Float32Array(W*H);
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++)T[yy*W+xx]=noiseAt(tooth,xx,yy);
+  const off=Math.max(1,Math.round(1.2*s)), edge=0.09*Math.min(W,H);
+  const aT=0.014*TEXK*2.2, aC=0.0035*TEXK*2, aE=0.02*TEXK;
+  for(let yy=0;yy<H;yy++){
+    const yo=Math.max(0,yy-off)*W;
+    for(let xx=0;xx<W;xx++){
+      const i=yy*W+xx, rel=T[i]-T[yo+Math.max(0,xx-off)];
+      const cl=noiseAt(c1,xx,yy)*0.65+noiseAt(c2,xx,yy)*0.35;
+      const dE=Math.min(xx,yy,W-1-xx,H-1-yy), e=dE<edge?(1-dE/edge)*(1-dE/edge):0;
+      const L=1+aT*rel+aC*cl-aE*e, j=i*4;
+      d[j]=R0*L; d[j+1]=G0*L; d[j+2]=B0*L; d[j+3]=255;
+    }
+  }
+  x.putImageData(img,0,0);
+  const r=rng(57); x.lineCap='round';
+  for(let n=0;n<9000;n++){
+    const px=r()*W, py=r()*H, len=(6+r()*22)*s, ang=r()*Math.PI, bend=(r()-0.5)*len*0.5;
+    const dx=Math.cos(ang)*len/2, dy=Math.sin(ang)*len/2, dark=r()<0.55, a=0.065*TEXK*(0.35+r()*0.65);
+    x.strokeStyle=dark?`rgba(120,104,80,${a.toFixed(4)})`:`rgba(255,255,252,${(a*1.3).toFixed(4)})`;
+    x.lineWidth=Math.max(0.35,(0.4+r()*0.45)*s);
+    x.beginPath(); x.moveTo(px-dx,py-dy); x.quadraticCurveTo(px-dy/len*bend*2,py+dx/len*bend*2,px+dx,py+dy); x.stroke();
+  }
+  TEX.set(key,c); return c;
+}
+/* Fläche füllen, rechteckig oder mit eigener Form */
+function fillSurf(ctx,key,W,H,shape){
+  const sf=SURF[key]||SURF.off; ctx.save();
+  if(typeof shape==='function')shape(ctx); else{ctx.beginPath();ctx.rect(shape.x,shape.y,shape.w,shape.h);}
+  ctx.clip();
+  if(sf.tex)ctx.drawImage(paperTex(W,H,sf.bg),0,0,W,H); else{ctx.fillStyle=sf.bg;ctx.fillRect(0,0,W,H);}
+  ctx.restore();
 }
 
 /* ---------- Foto und Ausschnitt ---------- */
@@ -252,7 +350,7 @@ function busyScore(r,W,H){const st=stats(r,W,H);return st.busy+st.sd*3;}
 /* Kontrast nach WCAG */
 function toLin(v){return v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);}
 function contrastV(a,b){const A=toLin(a),B=toLin(b);return (Math.max(A,B)+0.05)/(Math.min(A,B)+0.05);}
-const TV={light:0.97,dark:0.11}, SV={light:0.04,dark:0.955};
+const TV={light:0.94,dark:0.11}, SV={light:0.04,dark:0.955};
 /* Nötige Deckkraft des Schattens, stufenlos per Halbierungssuche */
 function need(st,mode,minA){
   const worst=mode==='light'?Math.min(1,st.v+1.1*st.sd):Math.max(0,st.v-1.1*st.sd);
@@ -329,128 +427,17 @@ function photoBrand(ctx,W,H,s,mode,env,key,minA){
   return {top,band:{from:top-16*s,to:H,fade:220*s,a:need(st,mode,minA==null?0.05:minA).a,c:need(st,mode,minA==null?0.05:minA).c}};
 }
 
-/* ---------- Die 12 Vorlagen ---------- */
+/* ---------- Die 25 Vorlagen ---------- */
+function fullPhoto(ctx,W,H,src){const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr); return pr;}
+/* Masthead mit großer Wortmarke über die ganze Breite (Magazin, Titelseite) */
+function masthead(ctx,W,H,s,m){
+  let ms=84*s; for(;;){ctx.font=`600 ${ms}px ${F_L}`; if(spacedW(ctx,WM,ms*0.25)<=W-2*m||ms<=20*s)break; ms-=1*s;}
+  return {ms,top:54*s,h:ms};
+}
 const R={
-  /* Papier */
-  pass(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.pass, sf=SURF[o.surf]||SURF.paper, col=colsSurf(o.surf);
-    ctx.fillStyle=sf.bg; ctx.fillRect(0,0,W,H);
-    const m=56*s, b=buildBlock(ctx,s,W-2*m-80*s,{titleMax:80,titleLines:2,notesLines:2,scale:o.scale});
-    const brandTop=H-m-brandH(s);
-    let ph=brandTop-48*s-b.h-58*s-m; ph=clamp(ph,H*0.45,H*0.72);
-    const pr={x:m,y:m,w:W-2*m,h:ph}; drawPhoto(ctx,src,pr);
-    const areaTop=m+ph, ty=areaTop+Math.max(24*s,(brandTop-areaTop-b.h)/2);
-    drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col);
-    return {photo:pr,text:null,c:21};
-  },
-  band(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.band, sf=SURF[o.surf]||SURF.paper, col=colsSurf(o.surf);
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const padX=88*s, pad=60*s, bh=brandH(s);
-    const b=buildBlock(ctx,s,W-2*padX,{titleMax:84,titleLines:2,notesLines:2,scale:o.scale});
-    const gapB=b.h?40*s:0, hB=pad+b.h+gapB+bh+pad*0.85;
-    let y;
-    const a=anchorOf(o);
-    if(a)y=a.y*H; else y=busyScore({x:0,y:0,w:W,h:hB},W,H)<=busyScore({x:0,y:H-hB,w:W,h:hB},W,H)?0:H-hB;
-    y=clamp(y,0,H-hB);
-    const snap=0.03*H;
-    if(y<snap)y=0; if(H-hB-y<snap)y=H-hB;
-    if(y>0&&y<H-hB){ctx.save();ctx.shadowColor='rgba(0,0,0,0.22)';ctx.shadowBlur=26*s;ctx.shadowOffsetY=6*s;ctx.fillStyle=sf.bg;ctx.fillRect(0,y,W,hB);ctx.restore();}
-    ctx.fillStyle=sf.bg; ctx.fillRect(0,y,W,hB);
-    drawBlock(ctx,b,W/2,y+pad,'center',col);
-    drawBrand(ctx,s,W/2,y+pad+b.h+gapB,col);
-    return {photo:pr,text:{rect:{x:0,y,w:W,h:hB},anchor:{x:0,y:y/H},axis:'y'},c:21};
-  },
-  polaroid(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.polaroid, sf=SURF[o.surf]||SURF.white, col=colsSurf(o.surf);
-    ctx.drawImage(blurred(src,W,H),0,0,W,H);
-    ctx.fillStyle='rgba(0,0,0,0.30)'; ctx.fillRect(0,0,W,H);
-    const cw=W*0.8, pm=36*s, pw=cw-2*pm, bh=brandH(s);
-    const b=buildBlock(ctx,s,pw-30*s,{titleMax:66,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
-    const textH=(b.h?34*s+b.h:0)+50*s;
-    let ph=Math.min(pw*1.04,H-2*44*s-pm-textH-50*s-bh);
-    ph=Math.max(ph,H*0.3);
-    const cardH=pm+ph+textH, total=cardH+50*s+bh;
-    const top=Math.max(36*s,(H-total)/2), left=(W-cw)/2;
-    ctx.save(); ctx.shadowColor='rgba(0,0,0,0.38)'; ctx.shadowBlur=46*s; ctx.shadowOffsetY=14*s;
-    ctx.fillStyle=sf.bg; ctx.fillRect(left,top,cw,cardH); ctx.restore();
-    ctx.fillStyle=sf.bg; ctx.fillRect(left,top,cw,cardH);
-    const pr={x:left+pm,y:top+pm,w:pw,h:ph}; drawPhoto(ctx,src,pr);
-    drawBlock(ctx,b,W/2,top+pm+ph+34*s,'center',col);
-    const btop=top+cardH+50*s;
-    const st=stats({x:W/2-250*s,y:btop,w:500*s,h:bh},W,H); const dim={v:st.v*0.7,sd:0,busy:1};
-    const n=need(dim,'light',0.05);
-    scrim(ctx,W,H,{key:'polB',axis:'y',mode:'light',bands:[{from:btop-10*s,to:H,fade:160*s,a:n.a}]},env);
-    drawBrand(ctx,s,W/2,btop,colsMode('light'));
-    return {photo:pr,text:null,c:n.c};
-  },
-  label(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.label, sf=SURF[o.surf]||SURF.paper, col=colsSurf(o.surf);
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const pad=46*s, bk=0.8, bh=brandH(s,bk), lw=brandW(ctx,s,bk);
-    const b=buildBlock(ctx,s,W*0.64,{titleMax:70,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
-    const cw=Math.max(b.w,lw,300*s)+2*pad, gap=b.h?32*s:0, ch=pad+b.h+gap+bh+pad*0.85, m=44*s;
-    let x,y; const a=anchorOf(o);
-    if(a){x=a.x*W;y=a.y*H;}
-    else{
-      const cands=[[(W-cw)/2,H-m-ch-20*s],[(W-cw)/2,m+20*s],[m+16*s,H-m-ch-20*s],[W-m-16*s-cw,H-m-ch-20*s],[m+16*s,m+20*s]];
-      let best=null; cands.forEach(c=>{const sc=busyScore({x:c[0],y:c[1],w:cw,h:ch},W,H); if(!best||sc<best.sc-0.02)best={sc,c};});
-      x=best.c[0]; y=best.c[1];
-    }
-    x=clamp(x,m*0.5,W-m*0.5-cw); y=clamp(y,m*0.5,H-m*0.5-ch);
-    x=snapX(env,x+cw/2,W/2,14*s,W)-cw/2;
-    ctx.save(); ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=30*s; ctx.shadowOffsetY=8*s;
-    ctx.fillStyle=sf.bg; rr(ctx,x,y,cw,ch,6*s); ctx.fill(); ctx.restore();
-    ctx.fillStyle=sf.bg; rr(ctx,x,y,cw,ch,6*s); ctx.fill();
-    drawBlock(ctx,b,x+cw/2,y+pad,'center',col);
-    drawBrand(ctx,s,x+cw/2,y+pad+b.h+gap,col,bk);
-    return {photo:pr,text:{rect:{x,y,w:cw,h:ch},anchor:{x:x/W,y:y/H},axis:'xy'},c:21};
-  },
-
-  /* Auf dem Foto */
-  free(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.free, center=o.align==='center';
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const m=72*s, bh=brandH(s), brandTop=H-56*s-bh;
-    const b=buildBlock(ctx,s,W-2*m,{titleMax:100,titleLines:2,notesLines:2,scale:o.scale});
-    const bw=Math.max(b.w,1), bhh=Math.max(b.h,1);
-    const minY=m*0.7, maxY=Math.max(minY,brandTop-56*s-bhh);
-    const a=anchorOf(o); let x,y;
-    if(a&&a.y!=null)y=a.y*H;
-    else{const ww=Math.max(bw,W*0.4); y=busyScore({x:center?(W-ww)/2:m,y:m+10*s,w:ww,h:bhh},W,H)<=busyScore({x:center?(W-ww)/2:m,y:maxY,w:ww,h:bhh},W,H)?m+10*s:maxY;}
-    x=(a&&a.x!=null)?a.x*W:(center?(W-bw)/2:m);
-    x=clamp(x,m*0.5,Math.max(m*0.5,W-m*0.5-bw)); y=clamp(y,minY,maxY);
-    if(center)x=snapX(env,x+bw/2,W/2,14*s,W)-bw/2; else x=snapX(env,x,m,14*s,W);
-    const rect={x,y,w:bw,h:bhh}, st=stats(rect,W,H);
-    const mode=decideMode('free',st,o.color,env), t=need(st,mode,0.1), br=photoBrand(ctx,W,H,s,mode,env);
-    scrim(ctx,W,H,{key:'free',axis:'y',mode,bands:[{from:y-24*s,to:y+bhh+24*s,fade:290*s,a:t.a},br.band]},env);
-    const col=colsMode(mode);
-    drawBlock(ctx,b,center?x+bw/2:x,y,center?'center':'left',col);
-    drawBrand(ctx,s,W/2,br.top,col);
-    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'xy'},c:Math.min(t.c,br.band.c),onPhoto:true};
-  },
-  side(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.side;
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const m=64*s, bh=brandH(s), brandTop=H-56*s-bh, maxBot=brandTop-48*s, L=maxBot-m;
-    const b=buildBlock(ctx,s,L,{titleMax:124,titleMin:44,titleLines:1,notesLines:1,scale:o.scale});
-    const len=Math.max(b.w,1), th=Math.max(b.h,1);
-    const a=anchorOf(o); let x,bot;
-    if(a){x=a.x*W;bot=a.y*H;}
-    else{bot=maxBot; x=busyScore({x:m,y:bot-len,w:th,h:len},W,H)<=busyScore({x:W-m-th,y:bot-len,w:th,h:len},W,H)?m:W-m-th;}
-    x=clamp(x,m*0.5,W-m*0.5-th); bot=clamp(bot,Math.min(maxBot,m*0.7+len),maxBot);
-    const rect={x,y:bot-len,w:th,h:len}, st=stats(rect,W,H);
-    const mode=decideMode('side',st,o.color,env), t=need(st,mode,0.1), br=photoBrand(ctx,W,H,s,mode,env);
-    scrim(ctx,W,H,{key:'sideT',axis:'x',mode,bands:[{from:x-24*s,to:x+th+24*s,fade:260*s,a:t.a}]},env);
-    scrim(ctx,W,H,{key:'sideB',axis:'y',mode,bands:[br.band]},env);
-    const col=colsMode(mode);
-    ctx.save(); ctx.translate(x,bot); ctx.rotate(-Math.PI/2); drawBlock(ctx,b,0,0,'left',col); ctx.restore();
-    drawBrand(ctx,s,W/2,br.top,col);
-    return {photo:pr,text:{rect,anchor:{x:x/W,y:bot/H},axis:'xy'},c:Math.min(t.c,br.band.c),onPhoto:true};
-  },
+  /* ===== Auf dem Foto ===== */
   center(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.center;
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
+    const s=W/1000, o=S.opt.center, pr=fullPhoto(ctx,W,H,src);
     const m=90*s, bh=brandH(s), brandTop=H-56*s-bh;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:134,titleMin:48,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
@@ -468,39 +455,10 @@ const R={
     drawBlock(ctx,b,W/2,y,'center',col); drawBrand(ctx,s,W/2,br.top,col);
     return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,br.band.c),onPhoto:true};
   },
-  glass(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.glass;
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const m=48*s, pad=50*s, bh=brandH(s), brandTop=H-56*s-bh;
-    const b=buildBlock(ctx,s,W-2*m-2*pad,{titleMax:88,titleLines:2,notesLines:2,scale:o.scale});
-    const bw=Math.max(b.w,380*s)+2*pad, bhh=Math.max(b.h,1)+2*pad;
-    const minY=m*0.6, maxY=Math.max(minY,brandTop-40*s-bhh);
-    const a=anchorOf(o); let x,y;
-    if(a){x=a.x*W;y=a.y*H;}
-    else{x=(W-bw)/2; y=busyScore({x,y:m+10*s,w:bw,h:bhh},W,H)<=busyScore({x,y:maxY,w:bw,h:bhh},W,H)?m+10*s:maxY;}
-    x=clamp(x,m*0.5,W-m*0.5-bw); y=clamp(y,minY,maxY);
-    x=snapX(env,x+bw/2,W/2,14*s,W)-bw/2;
-    const rect={x,y,w:bw,h:bhh}, raw=stats(rect,W,H), st={v:raw.v,sd:raw.sd*0.3,busy:1};
-    const mode=decideMode('glass',st,o.color,env), t=need(st,mode,0.2), br=photoBrand(ctx,W,H,s,mode,env);
-    scrim(ctx,W,H,{key:'glassB',axis:'y',mode,bands:[br.band]},env);
-    const ta=smoothVal('glassT:'+mode,t.a,env);
-    ctx.save(); rr(ctx,x,y,bw,bhh,18*s); ctx.clip();
-    ctx.drawImage(blurred(src,W,H),0,0,W,H);
-    ctx.fillStyle=`rgba(${RGB[mode]},${ta.toFixed(4)})`; ctx.fillRect(x,y,bw,bhh); ctx.restore();
-    ctx.strokeStyle=mode==='light'?'rgba(255,255,255,0.22)':'rgba(255,255,255,0.6)'; ctx.lineWidth=1.5*s;
-    rr(ctx,x+0.75*s,y+0.75*s,bw-1.5*s,bhh-1.5*s,18*s); ctx.stroke();
-    const col=colsMode(mode);
-    drawBlock(ctx,b,x+bw/2,y+pad,'center',col); drawBrand(ctx,s,W/2,br.top,col);
-    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'xy'},c:Math.min(t.c,br.band.c),onPhoto:true};
-  },
-
-  /* Editorial */
   cover(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.cover;
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const m=64*s, mt='REALM OF FRAGRANCE';
-    let ms=70*s; for(;;){ctx.font=`600 ${ms}px ${F_L}`; if(spacedW(ctx,mt,ms*0.16)<=W-2*m||ms<=20*s)break; ms-=1*s;}
-    const mTop=58*s, mH=ms*1.0, ruleY=mTop+mH+14*s, uS=16*s, mBot=ruleY+(S.url?18*s+uS:4*s);
+    const s=W/1000, o=S.opt.cover, pr=fullPhoto(ctx,W,H,src);
+    const m=64*s, M=masthead(ctx,W,H,s,m), ms=M.ms;
+    const mTop=M.top, mH=ms, ruleY=mTop+mH+14*s, uS=16*s, mBot=ruleY+(S.url?18*s+uS:4*s);
     const b=buildBlock(ctx,s,W-2*m,{titleMax:116,titleMin:50,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1);
     const minY=mBot+70*s, maxY=Math.max(minY,H-72*s-bhh);
@@ -513,73 +471,330 @@ const R={
     scrim(ctx,W,H,{key:'cover',axis:'y',mode,bands:[{from:0,to:mBot+10*s,fade:220*s,a:mn.a},{from:y-24*s,to:y+bhh+24*s,fade:290*s,a:t.a}]},env);
     const col=colsMode(mode);
     ctx.textBaseline='middle'; ctx.font=`600 ${ms}px ${F_L}`; ctx.fillStyle=col.title;
-    drawSpaced(ctx,mt,W/2+ms*0.08,mTop+mH/2,ms*0.16,'center');
+    drawSpaced(ctx,WM,W/2+ms*0.125,mTop+mH/2,ms*0.25,'center');
     ctx.fillStyle=col.rule; ctx.fillRect(m,ruleY,W-2*m,1.5*s);
-    if(S.url){ctx.font=`400 ${uS}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,'realmoffragrance.com',W/2,ruleY+18*s+uS*0.5,uS*0.12,'center');}
+    if(S.url){ctx.font=`400 ${uS}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,WEB,W/2,ruleY+18*s+uS*0.5,uS*0.12,'center');}
     drawBlock(ctx,b,m,y,'left',col);
     return {photo:pr,text:{rect,anchor:{x:m/W,y:y/H},axis:'y'},c:Math.min(t.c,mn.c),onPhoto:true};
   },
-  arch(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.arch, sf=SURF[o.surf]||SURF.paper, col=colsSurf(o.surf);
-    ctx.fillStyle=sf.bg; ctx.fillRect(0,0,W,H);
-    const m=120*s, aw=W-2*m, top=104*s, bh=brandH(s), brandTop=H-64*s-bh;
-    const b=buildBlock(ctx,s,W-2*80*s,{titleMax:80,titleLines:2,notesLines:2,scale:o.scale});
-    let ah=brandTop-56*s-b.h-60*s-top; ah=clamp(ah,H*0.42,H*0.6);
-    const r=aw/2;
-    const path=(ctx,x,y,w,h,rad)=>{ctx.beginPath();ctx.moveTo(x,y+h);ctx.lineTo(x,y+rad);ctx.arc(x+rad,y+rad,rad,Math.PI,0);ctx.lineTo(x+w,y+h);ctx.closePath();};
-    const pr={x:m,y:top,w:aw,h:ah};
-    ctx.save(); path(ctx,m,top,aw,ah,r); ctx.clip(); drawPhoto(ctx,src,pr); ctx.restore();
-    const off=16*s; ctx.strokeStyle=sf.dark?'rgba(211,230,228,0.5)':'rgba(62,107,106,0.5)'; ctx.lineWidth=1.5*s;
-    path(ctx,m-off,top-off,aw+2*off,ah+off*2,r+off); ctx.stroke();
-    const areaTop=top+ah+off, ty=areaTop+Math.max(30*s,(brandTop-areaTop-b.h)/2);
-    drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col);
-    return {photo:pr,text:null,c:21};
-  },
-  split(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.split, sf=SURF[o.surf]||SURF.petrol, col=colsSurf(o.surf);
-    const pad=58*s, bh=brandH(s);
-    const b=buildBlock(ctx,s,W-2*90*s,{titleMax:88,titleLines:2,notesLines:2,scale:o.scale});
-    const gapB=b.h?46*s:0, needH=pad+b.h+gapB+bh+pad*0.85;
-    const maxPh=H-needH, minPh=Math.min(maxPh,H*0.45);
-    const a=anchorOf(o); let ph=a?a.y*H:clamp(H-needH-90*s,H*0.5,H*0.7);
-    ph=clamp(ph,minPh,maxPh);
-    if(env.drag&&Math.abs(ph-H*2/3)<14*s&&H*2/3<=maxPh){ph=H*2/3;env.guides.push({h:2/3});}
-    const pr={x:0,y:0,w:W,h:ph}; drawPhoto(ctx,src,pr);
-    ctx.fillStyle=sf.bg; ctx.fillRect(0,ph,W,H-ph);
-    const brandTop=H-pad*0.85-bh, avail=brandTop-gapB-ph;
-    const ty=ph+Math.max(pad*0.8,(avail-b.h)/2);
-    drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col);
-    return {photo:pr,text:{rect:{x:0,y:ph,w:W,h:H-ph},anchor:{x:0,y:ph/H},axis:'y'},c:21};
-  },
-  frame(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.frame;
-    const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr);
-    const fm=46*s, L=22*s, lw=brandW(ctx,s,22/24), uS=15*s;
-    const b=buildBlock(ctx,s,W-2*(fm+70*s),{titleMax:96,titleLines:2,notesLines:2,scale:o.scale});
+  masthead(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.masthead, pr=fullPhoto(ctx,W,H,src);
+    const m=56*s, M=masthead(ctx,W,H,s,m), ms=M.ms, uS=16*s;
+    const mBot=M.top+ms+(S.url?20*s+uS*1.2:6*s);
+    const b=buildBlock(ctx,s,W-2*90*s,{titleMax:110,titleMin:46,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
-    const minY=fm+90*s, maxY=Math.max(minY,H-fm-80*s-bhh);
-    const a=anchorOf(o); let y;
-    if(a)y=a.y*H; else y=busyScore({x,y:maxY,w:bw,h:bhh},W,H)<=busyScore({x,y:minY+40*s,w:bw,h:bhh},W,H)+0.1?maxY:minY+40*s;
+    const minY=mBot+80*s, maxY=Math.max(minY,H-86*s-bhh);
+    const a=anchorOf(o); let y=a?a.y*H:maxY;
     y=clamp(y,minY,maxY);
     if(env.drag&&Math.abs(y+bhh/2-H/2)<14*s){y=H/2-bhh/2;env.guides.push({h:0.5});}
     const rect={x,y,w:bw,h:bhh}, st=stats(rect,W,H);
-    const mode=decideMode('frame',st,o.color,env), t=need(st,mode,0.1);
-    const tst=stats({x:W/2-lw/2-20*s,y:fm-L,w:lw+40*s,h:2*L},W,H), tn=need(tst,mode,0.12);
-    const bands=[{from:0,to:fm+L,fade:170*s,a:tn.a},{from:y-24*s,to:y+bhh+24*s,fade:280*s,a:t.a}];
-    let cMin=Math.min(t.c,tn.c);
-    if(S.url){const ust=stats({x:W/2-160*s,y:H-fm-uS,w:320*s,h:2*uS},W,H), un=need(ust,mode,0.1); bands.push({from:H-fm-uS*1.5,to:H,fade:150*s,a:un.a}); cMin=Math.min(cMin,un.c);}
-    scrim(ctx,W,H,{key:'frame',axis:'y',mode,bands},env);
+    const mode=decideMode('masthead',st,o.color,env), t=need(st,mode,0.1);
+    const mn=need(stats({x:m,y:M.top,w:W-2*m,h:mBot-M.top},W,H),mode,0.08);
+    scrim(ctx,W,H,{key:'mast',axis:'y',mode,bands:[{from:0,to:mBot+10*s,fade:220*s,a:mn.a},{from:y-24*s,to:y+bhh+24*s,fade:290*s,a:t.a}]},env);
     const col=colsMode(mode);
-    /* Linie mit Lücken für Logo und Adresse */
-    ctx.strokeStyle=col.line; ctx.lineWidth=2*s; const g1=lw/2+26*s;
-    ctx.beginPath();
-    ctx.moveTo(W/2-g1,fm); ctx.lineTo(fm,fm); ctx.lineTo(fm,H-fm);
-    if(S.url){ctx.font=`400 ${uS}px ${F_S}`; const uw=spacedW(ctx,'realmoffragrance.com',uS*0.08)/2+22*s; ctx.lineTo(W/2-uw,H-fm); ctx.moveTo(W/2+uw,H-fm);}
-    ctx.lineTo(W-fm,H-fm); ctx.lineTo(W-fm,fm); ctx.lineTo(W/2+g1,fm); ctx.stroke();
-    ctx.textBaseline='middle'; ctx.font=`600 ${L}px ${F_L}`; ctx.fillStyle=col.logo; drawSpaced(ctx,'REALM OF FRAGRANCE',W/2+L*0.15,fm,L*0.3,'center');
-    if(S.url){ctx.font=`400 ${uS}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,'realmoffragrance.com',W/2,H-fm,uS*0.08,'center');}
+    ctx.textBaseline='middle'; ctx.font=`600 ${ms}px ${F_L}`; ctx.fillStyle=col.logo;
+    drawSpaced(ctx,WM,W/2+ms*0.125,M.top+ms/2,ms*0.25,'center');
+    if(S.url){ctx.font=`400 ${uS}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,WEB,W/2,M.top+ms+20*s+uS*0.6,uS*0.12,'center');}
     drawBlock(ctx,b,W/2,y,'center',col);
-    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:cMin,onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,mn.c),onPhoto:true};
+  },
+  lower(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.lower, pr=fullPhoto(ctx,W,H,src);
+    const m=72*s, k=0.85, bh=brandH(s,k), brandTop=H-60*s-bh;
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:96,titleMin:40,titleLines:3,notesLines:2,scale:o.scale});
+    const by=brandTop-46*s-b.h, hy=by-30*s;
+    const rect={x:m,y:hy,w:W-2*m,h:H-60*s-hy}, st=stats(rect,W,H);
+    const mode=decideMode('lower',st,o.color,env), t=need(st,mode,0.12);
+    scrim(ctx,W,H,{key:'lower',axis:'y',mode,bands:[{from:hy-30*s,to:H,fade:300*s,a:t.a}]},env);
+    const col=colsMode(mode);
+    hline(ctx,m,W-m,hy,1.5*s,col.line);
+    drawBlock(ctx,b,m,by,'left',col); drawBrand(ctx,s,m,brandTop,col,k,'left');
+    return {photo:pr,text:null,c:t.c,onPhoto:true};
+  },
+  right(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.right, pr=fullPhoto(ctx,W,H,src);
+    const m=72*s, k=0.85, bh=brandH(s,k), brandTop=H-60*s-bh;
+    const b=buildBlock(ctx,s,W*0.72,{titleMax:100,titleMin:40,titleLines:3,notesLines:2,ruleW:64,scale:o.scale});
+    const by=brandTop-46*s-b.h, bw=Math.max(b.w,brandW(ctx,s,k));
+    const rect={x:W-m-bw,y:by,w:bw,h:H-60*s-by}, st=stats(rect,W,H);
+    const mode=decideMode('right',st,o.color,env), t=need(st,mode,0.12);
+    scrim(ctx,W,H,{key:'right',axis:'y',mode,bands:[{from:by-30*s,to:H,fade:300*s,a:t.a}]},env);
+    const col=colsMode(mode);
+    drawBlock(ctx,b,W-m,by,'right',col); drawBrand(ctx,s,W-m,brandTop,col,k,'right');
+    return {photo:pr,text:null,c:t.c,onPhoto:true};
+  },
+  midline(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.midline, pr=fullPhoto(ctx,W,H,src);
+    const m=56*s, bh=brandH(s), brandTop=H-56*s-bh;
+    const b=buildBlock(ctx,s,W-2*150*s,{titleMax:100,titleMin:40,titleLines:2,notesLines:2,scale:o.scale});
+    const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
+    const minY=m+20*s, maxY=Math.max(minY,brandTop-80*s-bhh);
+    const a=anchorOf(o); let y=a?a.y*H:H*0.46-bhh/2;
+    y=clamp(y,minY,maxY);
+    if(env.drag&&Math.abs(y+bhh/2-H/2)<14*s){y=H/2-bhh/2;env.guides.push({h:0.5});}
+    const rect={x,y,w:bw,h:bhh}, st=stats({x:m,y,w:W-2*m,h:bhh},W,H);
+    const mode=decideMode('midline',st,o.color,env), t=need(st,mode,0.12), br=photoBrand(ctx,W,H,s,mode,env);
+    scrim(ctx,W,H,{key:'mid',axis:'y',mode,bands:[{from:y-30*s,to:y+bhh+30*s,fade:260*s,a:t.a},br.band]},env);
+    const col=colsMode(mode);
+    if(b.titleY!=null){
+      const ly=y+b.titleY+b.titleH/2, gap=34*s, l0=W/2-b.titleW/2-gap, r0=W/2+b.titleW/2+gap;
+      if(l0-m>36*s){hline(ctx,m,l0,ly,1.5*s,col.line);hline(ctx,r0,W-m,ly,1.5*s,col.line);}
+    }
+    drawBlock(ctx,b,W/2,y,'center',col); drawBrand(ctx,s,W/2,br.top,col);
+    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,br.band.c),onPhoto:true};
+  },
+  headline(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.headline, pr=fullPhoto(ctx,W,H,src);
+    const m=64*s, y=m+16*s;
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:150,titleMin:52,titleLines:3,notesLines:2,scale:o.scale});
+    const rect={x:m,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
+    const mode=decideMode('headline',st,o.color,env), t=need(st,mode,0.12), br=photoBrand(ctx,W,H,s,mode,env);
+    scrim(ctx,W,H,{key:'head',axis:'y',mode,bands:[{from:0,to:y+rect.h+24*s,fade:300*s,a:t.a},br.band]},env);
+    const col=colsMode(mode);
+    drawBlock(ctx,b,m,y,'left',col); drawBrand(ctx,s,W/2,br.top,col);
+    return {photo:pr,text:null,c:Math.min(t.c,br.band.c),onPhoto:true};
+  },
+  underline(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.underline, pr=fullPhoto(ctx,W,H,src);
+    const m=80*s, bh=brandH(s), brandTop=H-56*s-bh;
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:104,titleMin:42,titleLines:3,notesCaps:true,notesMax:19,ruleW:72,ruleH:4,ruleRole:'rule2',scale:o.scale});
+    const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
+    const minY=m, maxY=Math.max(minY,brandTop-64*s-bhh);
+    const a=anchorOf(o); let y=a?a.y*H:maxY;
+    y=clamp(y,minY,maxY);
+    if(env.drag&&Math.abs(y+bhh/2-H/2)<14*s){y=H/2-bhh/2;env.guides.push({h:0.5});}
+    const rect={x,y,w:bw,h:bhh}, st=stats(rect,W,H);
+    const mode=decideMode('underline',st,o.color,env), t=need(st,mode,0.12), br=photoBrand(ctx,W,H,s,mode,env);
+    scrim(ctx,W,H,{key:'under',axis:'y',mode,bands:[{from:y-24*s,to:y+bhh+24*s,fade:290*s,a:t.a},br.band]},env);
+    const col=colsMode(mode);
+    drawBlock(ctx,b,W/2,y,'center',col); drawBrand(ctx,s,W/2,br.top,col);
+    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,br.band.c),onPhoto:true};
+  },
+  colfoot(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.colfoot, pr=fullPhoto(ctx,W,H,src);
+    const m=60*s, gut=52*s, inner=W-2*m, lw=inner*0.56, rw=inner-lw-gut, xr=m+lw+gut;
+    const bl=buildBlock(ctx,s,lw,{titleMax:80,titleMin:34,titleLines:3,skip:{notes:1},scale:o.scale});
+    const brt=buildBlock(ctx,s,rw,{titleMax:10,skip:{title:1,brand:1,extra:1},notesMax:25,notesMin:15,notesLines:4,scale:o.scale});
+    const k=fitK(ctx,s,rw,0.72), bh=brandH(s,k);
+    const rh=brt.h+(brt.h?34*s:0)+bh, zh=Math.max(bl.h,rh), bot=H-64*s, top=bot-zh;
+    const rect={x:m,y:top-40*s,w:inner,h:bot-top+40*s}, st=stats(rect,W,H);
+    const mode=decideMode('colfoot',st,o.color,env), t=need(st,mode,0.12);
+    scrim(ctx,W,H,{key:'colfoot',axis:'y',mode,bands:[{from:top-60*s,to:H,fade:300*s,a:t.a}]},env);
+    const col=colsMode(mode);
+    hline(ctx,m,W-m,top-36*s,1.5*s,col.line);
+    ctx.fillStyle=col.line; ctx.fillRect(m+lw+gut/2-0.75*s,top,1.5*s,zh);
+    drawBlock(ctx,bl,m,top,'left',col);
+    if(brt.h)drawBlock(ctx,brt,xr,top,'left',col);
+    drawBrand(ctx,s,xr,bot-bh,col,k,'left');
+    return {photo:pr,text:null,c:t.c,onPhoto:true};
+  },
+  issue(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.issue, pr=fullPhoto(ctx,W,H,src);
+    const m=64*s, k=0.75, bh=brandH(s,k), bwm=brandW(ctx,s,k), hy=m+bh+18*s;
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:112,titleMin:44,titleLines:3,notesLines:2,scale:o.scale});
+    const y=H-76*s-b.h, rect={x:m,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
+    const mode=decideMode('issue',st,o.color,env), t=need(st,mode,0.12);
+    const tn=need(stats({x:m,y:m,w:bwm,h:bh+20*s},W,H),mode,0.08);
+    scrim(ctx,W,H,{key:'issue',axis:'y',mode,bands:[{from:0,to:hy+14*s,fade:200*s,a:tn.a},{from:y-24*s,to:H,fade:300*s,a:t.a}]},env);
+    const col=colsMode(mode);
+    drawBrand(ctx,s,m,m,col,k,'left'); hline(ctx,m,m+bwm,hy,1.5*s,col.line);
+    drawBlock(ctx,b,m,y,'left',col);
+    return {photo:pr,text:null,c:Math.min(t.c,tn.c),onPhoto:true};
+  },
+  spine(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.spine, pr=fullPhoto(ctx,W,H,src);
+    const k=0.85, bh=brandH(s,k), sx=44*s, x=sx+bh+50*s, m=64*s;
+    const b=buildBlock(ctx,s,W-x-m,{titleMax:100,titleMin:38,titleLines:3,notesLines:2,scale:o.scale});
+    const y=H-72*s-b.h, rect={x,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
+    const mode=decideMode('spine',st,o.color,env), t=need(st,mode,0.12);
+    const bw=brandW(ctx,s,k), sn=need(stats({x:sx,y:H-72*s-bw,w:bh,h:bw},W,H),mode,0.08);
+    scrim(ctx,W,H,{key:'spineX',axis:'x',mode,bands:[{from:0,to:sx+bh+12*s,fade:190*s,a:sn.a}]},env);
+    scrim(ctx,W,H,{key:'spineY',axis:'y',mode,bands:[{from:y-24*s,to:H,fade:300*s,a:t.a}]},env);
+    const col=colsMode(mode);
+    ctx.save(); ctx.translate(sx,H-72*s); ctx.rotate(-Math.PI/2); drawBrand(ctx,s,0,0,col,k,'left'); ctx.restore();
+    drawBlock(ctx,b,x,y,'left',col);
+    return {photo:pr,text:null,c:Math.min(t.c,sn.c),onPhoto:true};
+  },
+
+  /* ===== Mit Fläche ===== */
+  label(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.label, sf=SURF[o.surf]||SURF.off, col=colsSurf(o.surf), pr=fullPhoto(ctx,W,H,src);
+    const pad=46*s, bk=0.8, bh=brandH(s,bk), lw=brandW(ctx,s,bk);
+    const b=buildBlock(ctx,s,W*0.64,{titleMax:70,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
+    const cw=Math.max(b.w,lw,300*s)+2*pad, gap=b.h?32*s:0, ch=pad+b.h+gap+bh+pad*0.85, m=44*s;
+    let x,y; const a=anchorOf(o);
+    if(a){x=a.x*W;y=a.y*H;}
+    else{
+      const cands=[[(W-cw)/2,H-m-ch-20*s],[(W-cw)/2,m+20*s],[m+16*s,H-m-ch-20*s],[W-m-16*s-cw,H-m-ch-20*s],[m+16*s,m+20*s]];
+      let best=null; cands.forEach(c=>{const sc=busyScore({x:c[0],y:c[1],w:cw,h:ch},W,H); if(!best||sc<best.sc-0.02)best={sc,c};});
+      x=best.c[0]; y=best.c[1];
+    }
+    x=clamp(x,m*0.5,W-m*0.5-cw); y=clamp(y,m*0.5,H-m*0.5-ch);
+    x=snapX(env,x+cw/2,W/2,14*s,W)-cw/2;
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=30*s; ctx.shadowOffsetY=8*s;
+    ctx.fillStyle=sf.bg; rr(ctx,x,y,cw,ch,6*s); ctx.fill(); ctx.restore();
+    fillSurf(ctx,o.surf,W,H,c=>rr(c,x,y,cw,ch,6*s));
+    drawBlock(ctx,b,x+cw/2,y+pad,'center',col);
+    drawBrand(ctx,s,x+cw/2,y+pad+b.h+gap,col,bk);
+    return {photo:pr,text:{rect:{x,y,w:cw,h:ch},anchor:{x:x/W,y:y/H},axis:'xy'},c:surfC(o.surf)};
+  },
+  headband(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.headband, col=colsSurf(o.surf), pad=54*s, k=0.78, bh=brandH(s,k);
+    const b=buildBlock(ctx,s,W-2*pad,{titleMax:74,titleMin:34,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
+    const hy=pad+bh+22*s, ty=hy+30*s, hb=ty+b.h+pad*0.95;
+    const pr={x:0,y:hb,w:W,h:H-hb}; drawPhoto(ctx,src,pr);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:hb});
+    drawBrand(ctx,s,pad,pad,col,k,'left'); hline(ctx,pad,W-pad,hy,1.5*s,col.line);
+    drawBlock(ctx,b,pad,ty,'left',col);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  footband(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.footband, col=colsSurf(o.surf), pad=54*s, inner=W-2*pad, lw=inner*0.62;
+    const b=buildBlock(ctx,s,lw,{titleMax:70,titleMin:32,titleLines:3,notesLines:2,notesMax:25,scale:o.scale});
+    const k=fitK(ctx,s,inner-lw-36*s,0.72), bh=brandH(s,k);
+    const hb=pad+Math.max(b.h,bh)+pad*0.95, top=H-hb;
+    const pr={x:0,y:0,w:W,h:top}; drawPhoto(ctx,src,pr);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:top,w:W,h:hb});
+    drawBlock(ctx,b,pad,top+pad,'left',col);
+    drawBrand(ctx,s,W-pad,top+pad+Math.max(b.h,bh)-bh,col,k,'right');
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  corner(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.corner, col=colsSurf(o.surf), pr=fullPhoto(ctx,W,H,src);
+    const pad=50*s, k=0.74, bh=brandH(s,k), lw=brandW(ctx,s,k);
+    const b=buildBlock(ctx,s,W*0.66-2*pad,{titleMax:66,titleMin:32,titleLines:3,notesLines:2,notesMax:24,scale:o.scale});
+    const cw=Math.min(W*0.76,Math.max(b.w,lw)+2*pad), ch=pad+b.h+(b.h?36*s:0)+bh+pad*0.9, y=H-ch;
+    fillSurf(ctx,o.surf,W,H,{x:0,y,w:cw,h:ch});
+    drawBlock(ctx,b,pad,y+pad,'left',col); drawBrand(ctx,s,pad,H-pad*0.9-bh,col,k,'left');
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  note(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.note, sf=SURF[o.surf]||SURF.off, col=colsSurf(o.surf), pr=fullPhoto(ctx,W,H,src);
+    const m=52*s, pad=40*s, edge=5*s, k=0.6, bh=brandH(s,k);
+    const b=buildBlock(ctx,s,W*0.6-2*pad,{titleMax:54,titleMin:28,titleLines:4,notesLines:3,notesMax:22,notesMin:15,brandSize:18,scale:o.scale});
+    const cw=Math.max(b.w,brandW(ctx,s,k),250*s)+2*pad, ch=edge+pad+b.h+(b.h?30*s:0)+bh+pad*0.8, x=W-m-cw, y=m;
+    fillSurf(ctx,o.surf,W,H,{x,y,w:cw,h:ch});
+    if(!sf.dark){ctx.strokeStyle='rgba(26,26,26,0.12)';ctx.lineWidth=1*s;ctx.strokeRect(x+0.5*s,y+0.5*s,cw-s,ch-s);}
+    ctx.fillStyle=sf.dark?OFF:PETROL; ctx.fillRect(x,y,cw,edge);
+    drawBlock(ctx,b,x+pad,y+edge+pad,'left',col); drawBrand(ctx,s,x+pad,y+ch-pad*0.8-bh,col,k,'left');
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  column(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.column, col=colsSurf(o.surf), pw=Math.round(W*0.55), pad=46*s, cwid=W-pw-2*pad;
+    const pr={x:0,y:0,w:pw,h:H}; drawPhoto(ctx,src,pr);
+    fillSurf(ctx,o.surf,W,H,{x:pw,y:0,w:W-pw,h:H});
+    const b=buildBlock(ctx,s,cwid,{titleMax:68,titleMin:26,titleLines:5,notesLines:4,notesMax:24,notesMin:15,brandSize:18,scale:o.scale});
+    const k=fitK(ctx,s,cwid,0.8), bh=brandH(s,k);
+    drawBlock(ctx,b,pw+pad,Math.max(pad+50*s,H*0.3-b.h/2),'left',col);
+    hline(ctx,pw+pad,W-pad,H-pad-50*s-bh-24*s,1.5*s,col.line);
+    drawBrand(ctx,s,pw+pad,H-pad-50*s-bh,col,k,'left');
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  colorfoot(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.colorfoot, col=colsSurf(o.surf), pad=60*s, k=0.8, bh=brandH(s,k);
+    const b=buildBlock(ctx,s,W-2*pad,{titleMax:76,titleMin:34,titleLines:2,notesLines:2,notesMax:25,scale:o.scale});
+    const needH=pad+b.h+44*s+bh+pad*0.8+24*s;
+    const ph=clamp(H-needH-30*s,H*0.45,H*0.7);
+    const pr={x:0,y:0,w:W,h:ph}; drawPhoto(ctx,src,pr);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:ph,w:W,h:H-ph});
+    const brandTop=H-pad*0.8-bh, hy=brandTop-24*s, ty=ph+Math.max(pad*0.9,(hy-ph-b.h)/2);
+    drawBlock(ctx,b,pad,ty,'left',col); hline(ctx,pad,W-pad,hy,1.5*s,col.line);
+    drawBrand(ctx,s,pad,brandTop+6*s,col,k,'left');
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  colorhead(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.colorhead, col=colsSurf(o.surf), pad=58*s, k=0.82, bh=brandH(s,k);
+    const b=buildBlock(ctx,s,W-2*90*s,{titleMax:90,titleMin:36,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
+    const ry=pad+bh+24*s, ty=ry+44*s, hh=Math.min(H*0.55,ty+b.h+pad);
+    const pr={x:0,y:hh,w:W,h:H-hh}; drawPhoto(ctx,src,pr);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:hh});
+    drawBrand(ctx,s,W/2,pad,col,k,'center'); ctx.fillStyle=col.rule; ctx.fillRect(W/2-28*s,ry,56*s,2*s);
+    drawBlock(ctx,b,W/2,ty,'center',col);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+
+  /* ===== Papierseite ===== */
+  pass(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.pass, col=colsSurf(o.surf);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
+    const m=56*s, b=buildBlock(ctx,s,W-2*m-80*s,{titleMax:80,titleLines:2,notesLines:2,scale:o.scale});
+    const brandTop=H-m-brandH(s);
+    let ph=brandTop-48*s-b.h-58*s-m; ph=clamp(ph,H*0.45,H*0.72);
+    const pr={x:m,y:m,w:W-2*m,h:ph}; drawPhoto(ctx,src,pr);
+    const areaTop=m+ph, ty=areaTop+Math.max(24*s,(brandTop-areaTop-b.h)/2);
+    drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  polaroid(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.polaroid, sf=SURF[o.surf]||SURF.off, col=colsSurf(o.surf);
+    ctx.drawImage(blurred(src,W,H),0,0,W,H);
+    ctx.fillStyle='rgba(0,0,0,0.30)'; ctx.fillRect(0,0,W,H);
+    const cw=W*0.8, pm=36*s, pw=cw-2*pm, bh=brandH(s);
+    const b=buildBlock(ctx,s,pw-30*s,{titleMax:66,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
+    const textH=(b.h?34*s+b.h:0)+50*s;
+    let ph=Math.min(pw*1.04,H-2*44*s-pm-textH-50*s-bh);
+    ph=Math.max(ph,H*0.3);
+    const cardH=pm+ph+textH, total=cardH+50*s+bh;
+    const top=Math.max(36*s,(H-total)/2), left=(W-cw)/2, btop=top+cardH+50*s;
+    const st=stats({x:W/2-250*s,y:btop,w:500*s,h:bh},W,H); const dim={v:st.v*0.7,sd:0,busy:1};
+    const n=need(dim,'light',0.05);
+    scrim(ctx,W,H,{key:'polB',axis:'y',mode:'light',bands:[{from:btop-10*s,to:H,fade:160*s,a:n.a}]},env);
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,0.38)'; ctx.shadowBlur=46*s; ctx.shadowOffsetY=14*s;
+    ctx.fillStyle=sf.bg; ctx.fillRect(left,top,cw,cardH); ctx.restore();
+    fillSurf(ctx,o.surf,W,H,{x:left,y:top,w:cw,h:cardH});
+    const pr={x:left+pm,y:top+pm,w:pw,h:ph}; drawPhoto(ctx,src,pr);
+    drawBlock(ctx,b,W/2,top+pm+ph+34*s,'center',col);
+    drawBrand(ctx,s,W/2,btop,colsMode('light'));
+    return {photo:pr,text:null,c:Math.min(n.c,surfC(o.surf))};
+  },
+  feuilleton(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.feuilleton, col=colsSurf(o.surf), m=64*s, k=0.8, bh=brandH(s,k);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
+    drawBrand(ctx,s,m,m,col,k,'left');
+    const r1=m+bh+22*s; hline(ctx,m,W-m,r1,2.5*s,col.title); hline(ctx,m,W-m,r1+7*s,1*s,col.title);
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:92,titleMin:38,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
+    const py=r1+40*s, pw=W-2*m, bot=H-m;
+    const ph=clamp(bot-30*s-b.h-48*s-py,H*0.3,pw*0.96);
+    const pr={x:m,y:py,w:pw,h:ph}; drawPhoto(ctx,src,pr);
+    drawBlock(ctx,b,m,py+ph+48*s,'left',col);
+    hline(ctx,m,W-m,bot,1*s,col.title);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  chapter(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.chapter, col=colsSurf(o.surf), bh=brandH(s,0.85), brandTop=H-60*s-bh;
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
+    const brand=S.text.brand.trim().toUpperCase();
+    let ey=72*s;
+    if(brand){let sz=22*s; for(;;){ctx.font=`500 ${sz}px ${F_S}`; if(spacedW(ctx,brand,sz*0.4)<=W-160*s||sz<=10*s)break; sz-=0.5*s;}
+      ctx.textBaseline='middle'; ctx.fillStyle=col.eyebrow; drawSpaced(ctx,brand,W/2+sz*0.2,ey+sz*0.6,sz*0.4,'center'); ey+=sz*1.2;}
+    const b=buildBlock(ctx,s,W-2*100*s,{titleMax:86,titleMin:36,titleLines:3,notesLines:2,notesMax:25,skip:{brand:1},scale:o.scale});
+    const py=ey+44*s, pw=W*0.6, ph=clamp(brandTop-50*s-b.h-50*s-py,H*0.3,pw*1.32);
+    const pr={x:(W-pw)/2,y:py,w:pw,h:ph}; drawPhoto(ctx,src,pr);
+    const ty=py+ph+Math.max(44*s,(brandTop-50*s-(py+ph)-b.h)/2);
+    drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col,0.85);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  gallery(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.gallery, col=colsSurf(o.surf), bh=brandH(s,0.78), brandTop=H-56*s-bh;
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
+    const pw=W*0.66, px=(W-pw)/2;
+    const b=buildBlock(ctx,s,pw,{titleMax:54,titleMin:28,titleLines:3,notesLines:2,notesMax:21,notesMin:15,brandSize:17,ruleW:40,scale:o.scale});
+    const py=104*s, ph=clamp(brandTop-60*s-b.h-60*s-py,H*0.35,pw*1.36);
+    const pr={x:px,y:py,w:pw,h:ph};
+    ctx.save(); ctx.shadowColor='rgba(26,26,26,0.26)'; ctx.shadowBlur=34*s; ctx.shadowOffsetY=16*s; ctx.fillStyle=INK; ctx.fillRect(px,py,pw,ph); ctx.restore();
+    drawPhoto(ctx,src,pr);
+    drawBlock(ctx,b,px,py+ph+56*s,'left',col); drawBrand(ctx,s,W/2,brandTop,col,0.78);
+    return {photo:pr,text:null,c:surfC(o.surf)};
+  },
+  window(ctx,W,H,src,env){
+    const s=W/1000, o=S.opt.window, col=colsSurf(o.surf), m=64*s, k=0.8, bh=brandH(s,k);
+    fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
+    const b=buildBlock(ctx,s,W-2*m,{titleMax:94,titleMin:40,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
+    const brandTop=H-m-bh, ty=brandTop-50*s-b.h;
+    const px=W*0.26, pw=W-px-m, ph=clamp(ty-60*s-m,H*0.3,pw*1.3);
+    const pr={x:px,y:m,w:pw,h:ph}; drawPhoto(ctx,src,pr);
+    drawBlock(ctx,b,m,ty,'left',col); drawBrand(ctx,s,m,brandTop,col,k,'left');
+    return {photo:pr,text:null,c:surfC(o.surf)};
   }
 };
 
@@ -605,7 +820,7 @@ function renderMain(){
   }
   if(env.drag&&r.text){
     const k=W/1000; ctx.save(); ctx.strokeStyle='rgba(134,181,178,0.95)'; ctx.lineWidth=2*k; ctx.setLineDash([10*k,8*k]);
-    const t=r.text.rect; if(S.tpl==='band'||S.tpl==='split')ctx.strokeRect(t.x+k,t.y+k,t.w-2*k,t.h-2*k); else{rr(ctx,t.x-12*k,t.y-12*k,t.w+24*k,t.h+24*k,8*k);ctx.stroke();}
+    const t=r.text.rect; if(false)ctx.strokeRect(t.x+k,t.y+k,t.w-2*k,t.h-2*k); else{rr(ctx,t.x-12*k,t.y-12*k,t.w+24*k,t.h+24*k,8*k);ctx.stroke();}
     ctx.setLineDash([]); ctx.strokeStyle='rgba(134,181,178,0.9)'; ctx.lineWidth=1.5*k;
     env.guides.forEach(g=>{ctx.beginPath(); if(g.v!=null){ctx.moveTo(g.v*W,0);ctx.lineTo(g.v*W,H);} else {ctx.moveTo(0,g.h*H);ctx.lineTo(W,g.h*H);} ctx.stroke();});
     ctx.restore();
@@ -682,7 +897,7 @@ function seg(parent,label,options,get,set,inline){
 function buildStyle(){
   const box=$('styleBox'); box.textContent='';
   const t=TPL[S.tpl], o=S.opt[S.tpl];
-  if(t.ctl.includes('surf'))seg(box,'Fläche',Object.keys(SURF).map(k=>[k,SURF[k].name]),()=>o.surf,v=>{o.surf=v;},true);
+  if(t.ctl.includes('surf'))seg(box,'Fläche',Object.keys(SURF).map(k=>[k,SURF[k].name]),()=>o.surf,v=>{o.surf=v;},false).classList.add('surf');
   if(t.ctl.includes('color'))seg(box,'Schrift',[['auto','Auto'],['light','Hell'],['dark','Dunkel']],()=>o.color,v=>{o.color=v;},true);
   if(t.ctl.includes('align'))seg(box,'Ausrichtung',[['left','Links'],['center','Mitte']],()=>o.align,v=>{o.align=v; if(o.pos)o.pos.x=null;},true);
   if(t.ctl.includes('scale')){
@@ -804,7 +1019,7 @@ function checkWarn(){
     if(el.value.indexOf("'")>-1){const p=el.selectionStart; el.value=el.value.replace(/'/g,'’'); try{el.setSelectionRange(p,p);}catch(_){}}
     S.text[id]=el.value; checkWarn(); changed(); fontsReady(el.value).then(schedule);
   });
-  el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur();});
+  if(id!=='name')el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur();}); /* im Titel macht Enter eine neue Zeile */
 });
 const extraSeg=$('extraSeg');
 [['top','Zusatz oben'],['bottom','Zusatz unten']].forEach(([v,t])=>{

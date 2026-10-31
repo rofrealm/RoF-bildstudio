@@ -1,4 +1,4 @@
-/* RoF Pins 3: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
+/* RoF Pins 4: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
 (function(){
 "use strict";
 
@@ -15,12 +15,13 @@ const sstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;};
 
 const BROWN='#8C5E34', OFF=PAPER;
-/* Flächen: nur RoF-Farben. "Off-White Papier" bekommt eine zarte Papierstruktur. */
+/* Flächen: nur RoF-Farben. Die Papier-Varianten bekommen eine zarte Papierstruktur. */
 const SURF={
   off:{bg:OFF,dark:false,name:'Off-White'},
   offp:{bg:OFF,dark:false,tex:true,name:'Off-White Papier'},
   petrol:{bg:PETROL,dark:true,name:'Petrol'},
-  brown:{bg:BROWN,dark:true,name:'Braun'}
+  brown:{bg:BROWN,dark:true,name:'Braun'},
+  brownp:{bg:BROWN,dark:true,tex:true,name:'Braun Papier'}
 };
 const SURF_OLD={paper:'off',white:'off',dark:'petrol'}; /* gespeicherte Werte aus RoF Pins 2 */
 
@@ -29,20 +30,20 @@ const TPLS=[
   {key:'center',   group:'Auf dem Foto', name:'Zentriert',      ctl:['color','scale','reset'], def:{}, drag:true},
   {key:'cover',    group:'Auf dem Foto', name:'Magazin',        ctl:['color','scale','reset'], def:{}, drag:true},
   {key:'masthead', group:'Auf dem Foto', name:'Titelseite',     ctl:['color','scale','reset'], def:{}, drag:true},
-  {key:'lower',    group:'Auf dem Foto', name:'Unteres Drittel',ctl:['color','scale'],         def:{}},
-  {key:'right',    group:'Auf dem Foto', name:'Rechtsbündig',   ctl:['color','scale'],         def:{}},
+  {key:'lower',    group:'Auf dem Foto', name:'Unteres Drittel',ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'right',    group:'Auf dem Foto', name:'Rechtsbündig',   ctl:['color','scale','reset'], def:{}, drag:true},
   {key:'midline',  group:'Auf dem Foto', name:'Mittellinie',    ctl:['color','scale','reset'], def:{}, drag:true},
-  {key:'headline', group:'Auf dem Foto', name:'Schlagzeile',    ctl:['color','scale'],         def:{}},
+  {key:'headline', group:'Auf dem Foto', name:'Schlagzeile',    ctl:['color','scale','reset'], def:{}, drag:true},
   {key:'underline',group:'Auf dem Foto', name:'Unterstrichen',  ctl:['color','scale','reset'], def:{}, drag:true},
-  {key:'colfoot',  group:'Auf dem Foto', name:'Spaltenfuß',     ctl:['color','scale'],         def:{}},
-  {key:'issue',    group:'Auf dem Foto', name:'Ausgabe',        ctl:['color','scale'],         def:{}},
-  {key:'spine',    group:'Auf dem Foto', name:'Buchrücken',     ctl:['color','scale'],         def:{}},
+  {key:'colfoot',  group:'Auf dem Foto', name:'Spaltenfuß',     ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'issue',    group:'Auf dem Foto', name:'Ausgabe',        ctl:['color','scale','reset'], def:{}, drag:true},
+  {key:'spine',    group:'Auf dem Foto', name:'Buchrücken',     ctl:['color','scale','reset'], def:{}, drag:true},
   {key:'label',    group:'Mit Fläche',   name:'Etikett',        ctl:['surf','scale','reset'],  def:{surf:'off'}, drag:true},
   {key:'headband', group:'Mit Fläche',   name:'Kopfband',       ctl:['surf','scale'],          def:{surf:'off'}},
   {key:'footband', group:'Mit Fläche',   name:'Fußband',        ctl:['surf','scale'],          def:{surf:'off'}},
   {key:'corner',   group:'Mit Fläche',   name:'Ecke',           ctl:['surf','scale'],          def:{surf:'off'}},
-  {key:'note',     group:'Mit Fläche',   name:'Notiz',          ctl:['surf','scale'],          def:{surf:'off'}},
-  {key:'column',   group:'Mit Fläche',   name:'Spalte',         ctl:['surf','scale'],          def:{surf:'offp'}},
+  {key:'note',     group:'Mit Fläche',   name:'Notiz',          ctl:['surf','scale','reset'],  def:{surf:'off'}, drag:true},
+  {key:'column',   group:'Mit Fläche',   name:'Spalte',         ctl:['surf','scale','reset'],  def:{surf:'offp'}, drag:true},
   {key:'colorfoot',group:'Mit Fläche',   name:'Farbfuß',        ctl:['surf','scale'],          def:{surf:'petrol'}},
   {key:'colorhead',group:'Mit Fläche',   name:'Farbkopf',       ctl:['surf','scale'],          def:{surf:'brown'}},
   {key:'pass',     group:'Papierseite',  name:'Passepartout',   ctl:['surf','scale'],          def:{surf:'offp'}},
@@ -58,7 +59,7 @@ const S={
   full:null, prev:null, isSample:true, imgId:0,
   crop:{x:0.5,y:0.5,z:1},
   text:{brand:'House of Thêom', name:'Heaven’s Reserve', notes:'Pflaume, Rum und Zimt', extra:'', extraPos:'top'},
-  url:true, tpl:'lower', size:2000, tab:'tpl',
+  url:true, ad:true, tpl:'lower', size:2000, tab:'tpl',
   opt:{}
 };
 function resetOpt(){TPLS.forEach(t=>{S.opt[t.key]=Object.assign({color:'auto',align:'left',surf:'off',scale:1,pos:null},t.def);});}
@@ -71,6 +72,7 @@ function loadState(){
     const d=JSON.parse(localStorage.getItem(STORE)||'null'); if(!d)return;
     if(d.text)Object.keys(S.text).forEach(k=>{if(typeof d.text[k]==='string')S.text[k]=d.text[k];});
     if(typeof d.url==='boolean')S.url=d.url;
+    if(typeof d.ad==='boolean')S.ad=d.ad;
     if(d.tpl&&TPL[d.tpl])S.tpl=d.tpl;
     if(d.size===1000||d.size===2000)S.size=d.size;
     if(d.opt)Object.keys(d.opt).forEach(k=>{if(S.opt[k]){const o=d.opt[k];['color','align'].forEach(p=>{if(typeof o[p]==='string')S.opt[k][p]=o[p];}); if(typeof o.surf==='string'){const v=SURF[o.surf]?o.surf:SURF_OLD[o.surf]; if(v&&TPL[k].ctl.includes('surf'))S.opt[k].surf=v;} if(typeof o.scale==='number')S.opt[k].scale=clamp(o.scale,0.8,1.3);}});
@@ -82,7 +84,7 @@ function saveState(){
   saveT=setTimeout(()=>{
     try{
       const opt={}; Object.keys(S.opt).forEach(k=>{const o=S.opt[k]; opt[k]={color:o.color,align:o.align,surf:o.surf,scale:o.scale};});
-      localStorage.setItem(STORE,JSON.stringify({text:S.text,url:S.url,tpl:S.tpl,size:S.size,opt}));
+      localStorage.setItem(STORE,JSON.stringify({text:S.text,url:S.url,ad:S.ad,tpl:S.tpl,size:S.size,opt}));
     }catch(_){}
   },400);
 }
@@ -96,7 +98,10 @@ function drawSpaced(ctx,t,x,y,sp,align){
 /* Eigene Zeilenumbrüche (Enter) bleiben erhalten; nur zu lange Zeilen werden zusätzlich umbrochen */
 function paras(text){return String(text||'').split(/\r?\n/).map(p=>p.trim().replace(/\s+/g,' ')).filter(Boolean);}
 function wrapPara(ctx,text,maxW,balance){
-  const words=text.split(' ').filter(Boolean); if(!words.length)return [];
+  /* Zahlen bleiben beim nächsten Wort ("7 Herbstdüfte"), damit keine Zahl allein am Zeilenende hängt */
+  const raw=text.split(' ').filter(Boolean), words=[];
+  for(let i=0;i<raw.length;i++){ if(/^\d+[.,]?$/.test(raw[i])&&i<raw.length-1){words.push(raw[i]+' '+raw[i+1]);i++;} else words.push(raw[i]); }
+  if(!words.length)return [];
   const lines=[]; let cur=words[0];
   for(let i=1;i<words.length;i++){const t=cur+' '+words[i]; if(ctx.measureText(t).width<=maxW)cur=t; else{lines.push(cur);cur=words[i];}}
   lines.push(cur);
@@ -132,6 +137,20 @@ function fitLines(ctx,text,fontFn,maxSize,minSize,maxW,maxLines){
   while(size>6&&lines.some(l=>ctx.measureText(l).width>maxW)){size-=step*0.5;ctx.font=fontFn(size);}
   return {size,lines};
 }
+/* Textgröße: Erst die Grundgröße für 100 % finden, dann mit dem Regler skalieren.
+   Vorher wirkte der Regler nur als Obergrenze, die bei langen Titeln nie erreicht wurde, deshalb änderte sich oft nichts.
+   Größer darf bis zu zwei Zeilen mehr belegen; passt es nicht, wird nur so weit verkleinert wie nötig. */
+function fitScaled(ctx,text,fontFn,maxSize,minSize,maxW,maxLines,k){
+  const base=fitLines(ctx,text,fontFn,maxSize,minSize,maxW,maxLines);
+  if(!k||Math.abs(k-1)<0.005)return base;
+  const lim=maxLines+(k>1?2:0); let size=base.size*k, lines=base.lines;
+  for(let i=0;i<90;i++){
+    ctx.font=fontFn(size); lines=wrapLines(ctx,text,maxW);
+    if((lines.length<=lim&&lines.every(l=>ctx.measureText(l).width<=maxW))||size<=6)break;
+    size*=0.97;
+  }
+  return {size,lines};
+}
 function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
 /* Textblock: Zusatzzeile oben (als Rubrik), Marke, Titel, Linie, Kernnoten, Zusatzzeile unten (als Hinweis).
@@ -158,7 +177,7 @@ function buildBlock(ctx,s,maxW,o){
   }
   if(name){
     const f=z=>`500 ${z}px ${F_T}`;
-    const r=fitLines(ctx,name,f,o.titleMax*s*k,(o.titleMin||38)*s*Math.min(k,1),maxW,o.titleLines||2);
+    const r=fitScaled(ctx,name,f,o.titleMax*s,(o.titleMin||38)*s,maxW,o.titleLines||2,k);
     ctx.font=f(r.size); r.lines.forEach(l=>{titleW=Math.max(titleW,ctx.measureText(l).width);}); w=Math.max(w,titleW);
     items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.12,h:r.size*1.12*r.lines.length,role:'title',tw:titleW});
   }
@@ -173,7 +192,7 @@ function buildBlock(ctx,s,maxW,o){
     }
     if(!done){
       const f=z=>`400 ${z}px ${F_S}`;
-      const r=fitLines(ctx,notes,f,(o.notesMax||30)*s*k,(o.notesMin||17)*s,maxW,o.notesLines||2);
+      const r=fitScaled(ctx,notes,f,(o.notesMax||30)*s,(o.notesMin||17)*s,maxW,o.notesLines||2,k);
       ctx.font=f(r.size); r.lines.forEach(l=>{w=Math.max(w,ctx.measureText(l).width);});
       items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.35,h:r.size*1.35*r.lines.length,role:'notes'});
     }
@@ -181,7 +200,7 @@ function buildBlock(ctx,s,maxW,o){
   if(extra&&T.extraPos==='bottom'){
     items.push({k:'gap',h:20*s});
     const f=z=>`400 ${z}px ${F_S}`;
-    const r=fitLines(ctx,extra,f,21*s*k,14*s,maxW,2);
+    const r=fitScaled(ctx,extra,f,21*s,14*s,maxW,2,k);
     ctx.font=f(r.size); r.lines.forEach(l=>{w=Math.max(w,ctx.measureText(l).width);});
     items.push({k:'ln',lines:r.lines,font:f(r.size),lh:r.size*1.4,h:r.size*1.4*r.lines.length,role:'hint'});
   }
@@ -220,6 +239,31 @@ function drawBrand(ctx,s,x,top,col,k,align){
 }
 function hline(ctx,x0,x1,y,h,c){ctx.fillStyle=c;ctx.fillRect(x0,y,x1-x0,h);}
 
+/* Werbekennzeichnung: "WERBUNG" auf jedem Pin an derselben Stelle (oben links), gut lesbar auf jedem Untergrund.
+   Dunkles Milchglas wie die Foto-Beschriftungen der Website, aber kräftiger (0,72), damit der Kontrast auch auf hellen Fotos über 4,5 : 1 bleibt.
+   Grund: Pinterest zeigt im Feed keine Beschreibung und vom Titel oft nichts. Nur das Bild ist vor dem Klick sicher zu sehen. */
+const AD_TXT='WERBUNG';
+function adGeom(ctx,s){
+  const fs=34*s, sp=fs*0.16, px=18*s, py=13*s;
+  ctx.font=`500 ${fs}px ${F_S}`; const tw=spacedW(ctx,AD_TXT,sp);
+  return {x:36*s,y:36*s,w:tw+2*px,h:fs+2*py,fs,sp,px};
+}
+/* Unterkante des Labels plus Abstand: Inhalte oben links beginnen darunter */
+function adTop(s){return S.ad?(36+60+22)*s:0;}
+function drawAd(ctx,s){
+  const g=adGeom(ctx,s); ctx.save();
+  ctx.fillStyle='rgba(24,18,12,0.72)'; rr(ctx,g.x,g.y,g.w,g.h,4*s); ctx.fill();
+  ctx.fillStyle='#FFFDFA'; ctx.font=`500 ${g.fs}px ${F_S}`; ctx.textBaseline='middle';
+  drawSpaced(ctx,AD_TXT,g.x+g.px,g.y+g.h/2+g.fs*0.04,g.sp,'left');
+  ctx.restore();
+}
+/* Eine Vorlage zeichnen, danach das Werbelabel obenauf */
+function drawPin(ctx,W,H,src,env,key){
+  const r=R[key||S.tpl](ctx,W,H,src,env);
+  if(S.ad)drawAd(ctx,W/1000);
+  return r;
+}
+
 /* Farben: nur RoF-Farben (Petrol, Braun, Off-White, Text, Nebentext, Labels) */
 const LT='242,240,235';
 function colsMode(mode){
@@ -245,8 +289,9 @@ function noiseAt(G,px,py){
   const a=g[i]+(g[i+1]-g[i])*sx, b=g[i+G.gw]+(g[i+G.gw+1]-g[i+G.gw])*sx; return a+(b-a)*sy;
 }
 function paperTex(W,H,bg){
-  const key=W+'x'+H+bg; if(TEX.has(key))return TEX.get(key);
-  if(TEX.size>4)TEX.clear();
+  const key=W+'x'+H+bg;
+  if(TEX.has(key)){const v=TEX.get(key); TEX.delete(key); TEX.set(key,v); return v;} /* zuletzt benutzt nach hinten */
+  while(TEX.size>=6)TEX.delete(TEX.keys().next().value); /* nur die älteste Struktur verwerfen, nicht alle (vorher ruckelte der Wechsel) */
   const s=W/1000, c=mk(W,H), x=c.getContext('2d');
   const R0=parseInt(bg.slice(1,3),16), G0=parseInt(bg.slice(3,5),16), B0=parseInt(bg.slice(5,7),16);
   const img=x.createImageData(W,H), d=img.data;
@@ -267,10 +312,12 @@ function paperTex(W,H,bg){
   }
   x.putImageData(img,0,0);
   const r=rng(57); x.lineCap='round';
+  /* Dunkle Fasern: auf hellem Papier warmes Grau, auf dunklen Flächen ein Ton der Fläche selbst, damit Braun Papier nicht fleckig wirkt */
+  const darkBg=lumHex(bg)<0.5, DF=darkBg?`${R0*0.62|0},${G0*0.62|0},${B0*0.62|0}`:'120,104,80', LK=darkBg?0.75:1.3;
   for(let n=0;n<9000;n++){
     const px=r()*W, py=r()*H, len=(6+r()*22)*s, ang=r()*Math.PI, bend=(r()-0.5)*len*0.5;
     const dx=Math.cos(ang)*len/2, dy=Math.sin(ang)*len/2, dark=r()<0.55, a=0.065*TEXK*(0.35+r()*0.65);
-    x.strokeStyle=dark?`rgba(120,104,80,${a.toFixed(4)})`:`rgba(255,255,252,${(a*1.3).toFixed(4)})`;
+    x.strokeStyle=dark?`rgba(${DF},${a.toFixed(4)})`:`rgba(255,255,252,${(a*LK).toFixed(4)})`;
     x.lineWidth=Math.max(0.35,(0.4+r()*0.45)*s);
     x.beginPath(); x.moveTo(px-dx,py-dy); x.quadraticCurveTo(px-dy/len*bend*2,py+dx/len*bend*2,px+dx,py+dy); x.stroke();
   }
@@ -432,7 +479,7 @@ function fullPhoto(ctx,W,H,src){const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr
 /* Masthead mit großer Wortmarke über die ganze Breite (Magazin, Titelseite) */
 function masthead(ctx,W,H,s,m){
   let ms=84*s; for(;;){ctx.font=`600 ${ms}px ${F_L}`; if(spacedW(ctx,WM,ms*0.25)<=W-2*m||ms<=20*s)break; ms-=1*s;}
-  return {ms,top:54*s,h:ms};
+  return {ms,top:Math.max(54*s,adTop(s)),h:ms};
 }
 const R={
   /* ===== Auf dem Foto ===== */
@@ -441,7 +488,7 @@ const R={
     const m=90*s, bh=brandH(s), brandTop=H-56*s-bh;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:134,titleMin:48,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
-    const minY=m*0.6, maxY=Math.max(minY,brandTop-80*s-bhh);
+    const minY=Math.max(m*0.6,adTop(s)), maxY=Math.max(minY,brandTop-80*s-bhh);
     const a=anchorOf(o); let y;
     if(a)y=a.y*H;
     else{let best=null;[minY+30*s,H*0.42-bhh/2,maxY].forEach(c=>{const yy=clamp(c,minY,maxY),sc=busyScore({x,y:yy,w:bw,h:bhh},W,H);if(!best||sc<best.sc-0.03)best={sc,yy};});y=best.yy;}
@@ -498,37 +545,42 @@ const R={
     drawBlock(ctx,b,W/2,y,'center',col);
     return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,mn.c),onPhoto:true};
   },
+  /* Text über der Wortmarke unten; der Textblock lässt sich nach oben ziehen, die Wortmarke bleibt unten */
   lower(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.lower, pr=fullPhoto(ctx,W,H,src);
     const m=72*s, k=0.85, bh=brandH(s,k), brandTop=H-60*s-bh;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:96,titleMin:40,titleLines:3,notesLines:2,scale:o.scale});
-    const by=brandTop-46*s-b.h, hy=by-30*s;
-    const rect={x:m,y:hy,w:W-2*m,h:H-60*s-hy}, st=stats(rect,W,H);
+    const minY=Math.max(m,adTop(s))+30*s, maxY=Math.max(minY,brandTop-46*s-b.h);
+    const a=anchorOf(o); let by=a?a.y*H:maxY; by=clamp(by,minY,maxY);
+    const hy=by-30*s, rect={x:m,y:hy,w:W-2*m,h:b.h+30*s}, st=stats(rect,W,H);
     const mode=decideMode('lower',st,o.color,env), t=need(st,mode,0.12);
-    scrim(ctx,W,H,{key:'lower',axis:'y',mode,bands:[{from:hy-30*s,to:H,fade:300*s,a:t.a}]},env);
+    const bn=need(stats({x:m,y:brandTop,w:brandW(ctx,s,k),h:bh},W,H),mode,0.05);
+    scrim(ctx,W,H,{key:'lower',axis:'y',mode,bands:[{from:hy-30*s,to:by+b.h+30*s,fade:300*s,a:t.a},{from:brandTop-16*s,to:H,fade:220*s,a:bn.a}]},env);
     const col=colsMode(mode);
     hline(ctx,m,W-m,hy,1.5*s,col.line);
     drawBlock(ctx,b,m,by,'left',col); drawBrand(ctx,s,m,brandTop,col,k,'left');
-    return {photo:pr,text:null,c:t.c,onPhoto:true};
+    return {photo:pr,text:{rect:{x:m,y:hy,w:W-2*m,h:b.h+30*s},anchor:{x:m/W,y:by/H},axis:'y'},c:Math.min(t.c,bn.c),onPhoto:true};
   },
   right(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.right, pr=fullPhoto(ctx,W,H,src);
     const m=72*s, k=0.85, bh=brandH(s,k), brandTop=H-60*s-bh;
     const b=buildBlock(ctx,s,W*0.72,{titleMax:100,titleMin:40,titleLines:3,notesLines:2,ruleW:64,scale:o.scale});
-    const by=brandTop-46*s-b.h, bw=Math.max(b.w,brandW(ctx,s,k));
-    const rect={x:W-m-bw,y:by,w:bw,h:H-60*s-by}, st=stats(rect,W,H);
+    const minY=Math.max(m,adTop(s)), maxY=Math.max(minY,brandTop-46*s-b.h);
+    const a=anchorOf(o); let by=a?a.y*H:maxY; by=clamp(by,minY,maxY);
+    const bw=Math.max(b.w,1), rect={x:W-m-bw,y:by,w:bw,h:Math.max(b.h,1)}, st=stats(rect,W,H);
     const mode=decideMode('right',st,o.color,env), t=need(st,mode,0.12);
-    scrim(ctx,W,H,{key:'right',axis:'y',mode,bands:[{from:by-30*s,to:H,fade:300*s,a:t.a}]},env);
+    const bn=need(stats({x:W-m-brandW(ctx,s,k),y:brandTop,w:brandW(ctx,s,k),h:bh},W,H),mode,0.05);
+    scrim(ctx,W,H,{key:'right',axis:'y',mode,bands:[{from:by-30*s,to:by+b.h+30*s,fade:300*s,a:t.a},{from:brandTop-16*s,to:H,fade:220*s,a:bn.a}]},env);
     const col=colsMode(mode);
     drawBlock(ctx,b,W-m,by,'right',col); drawBrand(ctx,s,W-m,brandTop,col,k,'right');
-    return {photo:pr,text:null,c:t.c,onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:rect.x/W,y:by/H},axis:'y'},c:Math.min(t.c,bn.c),onPhoto:true};
   },
   midline(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.midline, pr=fullPhoto(ctx,W,H,src);
     const m=56*s, bh=brandH(s), brandTop=H-56*s-bh;
     const b=buildBlock(ctx,s,W-2*150*s,{titleMax:100,titleMin:40,titleLines:2,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
-    const minY=m+20*s, maxY=Math.max(minY,brandTop-80*s-bhh);
+    const minY=Math.max(m+20*s,adTop(s)), maxY=Math.max(minY,brandTop-80*s-bhh);
     const a=anchorOf(o); let y=a?a.y*H:H*0.46-bhh/2;
     y=clamp(y,minY,maxY);
     if(env.drag&&Math.abs(y+bhh/2-H/2)<14*s){y=H/2-bhh/2;env.guides.push({h:0.5});}
@@ -545,21 +597,23 @@ const R={
   },
   headline(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.headline, pr=fullPhoto(ctx,W,H,src);
-    const m=64*s, y=m+16*s;
+    const m=64*s, bh=brandH(s), brandTop=H-56*s-bh;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:150,titleMin:52,titleLines:3,notesLines:2,scale:o.scale});
+    const minY=Math.max(m+16*s,adTop(s)), maxY=Math.max(minY,brandTop-70*s-b.h);
+    const a=anchorOf(o); let y=a?a.y*H:minY; y=clamp(y,minY,maxY);
     const rect={x:m,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
     const mode=decideMode('headline',st,o.color,env), t=need(st,mode,0.12), br=photoBrand(ctx,W,H,s,mode,env);
-    scrim(ctx,W,H,{key:'head',axis:'y',mode,bands:[{from:0,to:y+rect.h+24*s,fade:300*s,a:t.a},br.band]},env);
+    scrim(ctx,W,H,{key:'head',axis:'y',mode,bands:[{from:y-80*s,to:y+rect.h+24*s,fade:300*s,a:t.a},br.band]},env);
     const col=colsMode(mode);
     drawBlock(ctx,b,m,y,'left',col); drawBrand(ctx,s,W/2,br.top,col);
-    return {photo:pr,text:null,c:Math.min(t.c,br.band.c),onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:m/W,y:y/H},axis:'y'},c:Math.min(t.c,br.band.c),onPhoto:true};
   },
   underline(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.underline, pr=fullPhoto(ctx,W,H,src);
     const m=80*s, bh=brandH(s), brandTop=H-56*s-bh;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:104,titleMin:42,titleLines:3,notesCaps:true,notesMax:19,ruleW:72,ruleH:4,ruleRole:'rule2',scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
-    const minY=m, maxY=Math.max(minY,brandTop-64*s-bhh);
+    const minY=Math.max(m,adTop(s)), maxY=Math.max(minY,brandTop-64*s-bhh);
     const a=anchorOf(o); let y=a?a.y*H:maxY;
     y=clamp(y,minY,maxY);
     if(env.drag&&Math.abs(y+bhh/2-H/2)<14*s){y=H/2-bhh/2;env.guides.push({h:0.5});}
@@ -570,50 +624,57 @@ const R={
     drawBlock(ctx,b,W/2,y,'center',col); drawBrand(ctx,s,W/2,br.top,col);
     return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,br.band.c),onPhoto:true};
   },
+  /* Zwei Spalten mit Linien; der ganze Fuß (auch die Wortmarke rechts) lässt sich nach oben ziehen */
   colfoot(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.colfoot, pr=fullPhoto(ctx,W,H,src);
     const m=60*s, gut=52*s, inner=W-2*m, lw=inner*0.56, rw=inner-lw-gut, xr=m+lw+gut;
     const bl=buildBlock(ctx,s,lw,{titleMax:80,titleMin:34,titleLines:3,skip:{notes:1},scale:o.scale});
     const brt=buildBlock(ctx,s,rw,{titleMax:10,skip:{title:1,brand:1,extra:1},notesMax:25,notesMin:15,notesLines:4,scale:o.scale});
     const k=fitK(ctx,s,rw,0.72), bh=brandH(s,k);
-    const rh=brt.h+(brt.h?34*s:0)+bh, zh=Math.max(bl.h,rh), bot=H-64*s, top=bot-zh;
-    const rect={x:m,y:top-40*s,w:inner,h:bot-top+40*s}, st=stats(rect,W,H);
+    const rh=brt.h+(brt.h?34*s:0)+bh, zh=Math.max(bl.h,rh);
+    const minT=Math.max(m,adTop(s))+40*s, maxT=Math.max(minT,H-64*s-zh);
+    const a=anchorOf(o); let top=a?a.y*H:maxT; top=clamp(top,minT,maxT);
+    const bot=top+zh, rect={x:m,y:top-40*s,w:inner,h:zh+40*s}, st=stats(rect,W,H);
     const mode=decideMode('colfoot',st,o.color,env), t=need(st,mode,0.12);
-    scrim(ctx,W,H,{key:'colfoot',axis:'y',mode,bands:[{from:top-60*s,to:H,fade:300*s,a:t.a}]},env);
+    scrim(ctx,W,H,{key:'colfoot',axis:'y',mode,bands:[{from:top-60*s,to:bot+64*s,fade:300*s,a:t.a}]},env);
     const col=colsMode(mode);
     hline(ctx,m,W-m,top-36*s,1.5*s,col.line);
     ctx.fillStyle=col.line; ctx.fillRect(m+lw+gut/2-0.75*s,top,1.5*s,zh);
     drawBlock(ctx,bl,m,top,'left',col);
     if(brt.h)drawBlock(ctx,brt,xr,top,'left',col);
     drawBrand(ctx,s,xr,bot-bh,col,k,'left');
-    return {photo:pr,text:null,c:t.c,onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:m/W,y:top/H},axis:'y'},c:t.c,onPhoto:true};
   },
   issue(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.issue, pr=fullPhoto(ctx,W,H,src);
-    const m=64*s, k=0.75, bh=brandH(s,k), bwm=brandW(ctx,s,k), hy=m+bh+18*s;
+    const m=64*s, k=0.75, bh=brandH(s,k), bwm=brandW(ctx,s,k), top0=Math.max(m,adTop(s)), hy=top0+bh+18*s;
     const b=buildBlock(ctx,s,W-2*m,{titleMax:112,titleMin:44,titleLines:3,notesLines:2,scale:o.scale});
-    const y=H-76*s-b.h, rect={x:m,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
+    const minY=hy+70*s, maxY=Math.max(minY,H-76*s-b.h);
+    const a=anchorOf(o); let y=a?a.y*H:maxY; y=clamp(y,minY,maxY);
+    const rect={x:m,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
     const mode=decideMode('issue',st,o.color,env), t=need(st,mode,0.12);
-    const tn=need(stats({x:m,y:m,w:bwm,h:bh+20*s},W,H),mode,0.08);
-    scrim(ctx,W,H,{key:'issue',axis:'y',mode,bands:[{from:0,to:hy+14*s,fade:200*s,a:tn.a},{from:y-24*s,to:H,fade:300*s,a:t.a}]},env);
+    const tn=need(stats({x:m,y:top0,w:bwm,h:bh+20*s},W,H),mode,0.08);
+    scrim(ctx,W,H,{key:'issue',axis:'y',mode,bands:[{from:0,to:hy+14*s,fade:200*s,a:tn.a},{from:y-24*s,to:y+b.h+76*s,fade:300*s,a:t.a}]},env);
     const col=colsMode(mode);
-    drawBrand(ctx,s,m,m,col,k,'left'); hline(ctx,m,m+bwm,hy,1.5*s,col.line);
+    drawBrand(ctx,s,m,top0,col,k,'left'); hline(ctx,m,m+bwm,hy,1.5*s,col.line);
     drawBlock(ctx,b,m,y,'left',col);
-    return {photo:pr,text:null,c:Math.min(t.c,tn.c),onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:m/W,y:y/H},axis:'y'},c:Math.min(t.c,tn.c),onPhoto:true};
   },
   spine(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.spine, pr=fullPhoto(ctx,W,H,src);
     const k=0.85, bh=brandH(s,k), sx=44*s, x=sx+bh+50*s, m=64*s;
     const b=buildBlock(ctx,s,W-x-m,{titleMax:100,titleMin:38,titleLines:3,notesLines:2,scale:o.scale});
-    const y=H-72*s-b.h, rect={x,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
+    const minY=Math.max(m,adTop(s)), maxY=Math.max(minY,H-72*s-b.h);
+    const a=anchorOf(o); let y=a?a.y*H:maxY; y=clamp(y,minY,maxY);
+    const rect={x,y,w:Math.max(b.w,1),h:Math.max(b.h,1)}, st=stats(rect,W,H);
     const mode=decideMode('spine',st,o.color,env), t=need(st,mode,0.12);
     const bw=brandW(ctx,s,k), sn=need(stats({x:sx,y:H-72*s-bw,w:bh,h:bw},W,H),mode,0.08);
     scrim(ctx,W,H,{key:'spineX',axis:'x',mode,bands:[{from:0,to:sx+bh+12*s,fade:190*s,a:sn.a}]},env);
-    scrim(ctx,W,H,{key:'spineY',axis:'y',mode,bands:[{from:y-24*s,to:H,fade:300*s,a:t.a}]},env);
+    scrim(ctx,W,H,{key:'spineY',axis:'y',mode,bands:[{from:y-24*s,to:y+b.h+72*s,fade:300*s,a:t.a}]},env);
     const col=colsMode(mode);
     ctx.save(); ctx.translate(sx,H-72*s); ctx.rotate(-Math.PI/2); drawBrand(ctx,s,0,0,col,k,'left'); ctx.restore();
     drawBlock(ctx,b,x,y,'left',col);
-    return {photo:pr,text:null,c:Math.min(t.c,sn.c),onPhoto:true};
+    return {photo:pr,text:{rect,anchor:{x:x/W,y:y/H},axis:'y'},c:Math.min(t.c,sn.c),onPhoto:true};
   },
 
   /* ===== Mit Fläche ===== */
@@ -625,11 +686,11 @@ const R={
     let x,y; const a=anchorOf(o);
     if(a){x=a.x*W;y=a.y*H;}
     else{
-      const cands=[[(W-cw)/2,H-m-ch-20*s],[(W-cw)/2,m+20*s],[m+16*s,H-m-ch-20*s],[W-m-16*s-cw,H-m-ch-20*s],[m+16*s,m+20*s]];
+      const tY=Math.max(m+20*s,adTop(s)), cands=[[(W-cw)/2,H-m-ch-20*s],[(W-cw)/2,tY],[m+16*s,H-m-ch-20*s],[W-m-16*s-cw,H-m-ch-20*s],[m+16*s,tY]];
       let best=null; cands.forEach(c=>{const sc=busyScore({x:c[0],y:c[1],w:cw,h:ch},W,H); if(!best||sc<best.sc-0.02)best={sc,c};});
       x=best.c[0]; y=best.c[1];
     }
-    x=clamp(x,m*0.5,W-m*0.5-cw); y=clamp(y,m*0.5,H-m*0.5-ch);
+    x=clamp(x,m*0.5,W-m*0.5-cw); y=clamp(y,Math.max(m*0.5,adTop(s)),H-m*0.5-ch);
     x=snapX(env,x+cw/2,W/2,14*s,W)-cw/2;
     ctx.save(); ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=30*s; ctx.shadowOffsetY=8*s;
     ctx.fillStyle=sf.bg; rr(ctx,x,y,cw,ch,6*s); ctx.fill(); ctx.restore();
@@ -639,12 +700,12 @@ const R={
     return {photo:pr,text:{rect:{x,y,w:cw,h:ch},anchor:{x:x/W,y:y/H},axis:'xy'},c:surfC(o.surf)};
   },
   headband(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.headband, col=colsSurf(o.surf), pad=54*s, k=0.78, bh=brandH(s,k);
+    const s=W/1000, o=S.opt.headband, col=colsSurf(o.surf), pad=54*s, k=0.78, bh=brandH(s,k), top0=Math.max(pad,adTop(s));
     const b=buildBlock(ctx,s,W-2*pad,{titleMax:74,titleMin:34,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
-    const hy=pad+bh+22*s, ty=hy+30*s, hb=ty+b.h+pad*0.95;
+    const hy=top0+bh+22*s, ty=hy+30*s, hb=ty+b.h+pad*0.95;
     const pr={x:0,y:hb,w:W,h:H-hb}; drawPhoto(ctx,src,pr);
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:hb});
-    drawBrand(ctx,s,pad,pad,col,k,'left'); hline(ctx,pad,W-pad,hy,1.5*s,col.line);
+    drawBrand(ctx,s,pad,top0,col,k,'left'); hline(ctx,pad,W-pad,hy,1.5*s,col.line);
     drawBlock(ctx,b,pad,ty,'left',col);
     return {photo:pr,text:null,c:surfC(o.surf)};
   },
@@ -672,12 +733,16 @@ const R={
     const s=W/1000, o=S.opt.note, sf=SURF[o.surf]||SURF.off, col=colsSurf(o.surf), pr=fullPhoto(ctx,W,H,src);
     const m=52*s, pad=40*s, edge=5*s, k=0.6, bh=brandH(s,k);
     const b=buildBlock(ctx,s,W*0.6-2*pad,{titleMax:54,titleMin:28,titleLines:4,notesLines:3,notesMax:22,notesMin:15,brandSize:18,scale:o.scale});
-    const cw=Math.max(b.w,brandW(ctx,s,k),250*s)+2*pad, ch=edge+pad+b.h+(b.h?30*s:0)+bh+pad*0.8, x=W-m-cw, y=m;
+    const cw=Math.max(b.w,brandW(ctx,s,k),250*s)+2*pad, ch=edge+pad+b.h+(b.h?30*s:0)+bh+pad*0.8;
+    const a=anchorOf(o); let x=a?a.x*W:W-m-cw, y=a?a.y*H:m;
+    x=clamp(x,m*0.5,W-m*0.5-cw); y=clamp(y,m*0.5,H-m*0.5-ch);
+    if(x<adGeom(ctx,s).x+adGeom(ctx,s).w+12*s)y=Math.max(y,adTop(s)); /* nicht unter das Werbelabel */
+    x=snapX(env,x+cw/2,W/2,14*s,W)-cw/2;
     fillSurf(ctx,o.surf,W,H,{x,y,w:cw,h:ch});
     if(!sf.dark){ctx.strokeStyle='rgba(26,26,26,0.12)';ctx.lineWidth=1*s;ctx.strokeRect(x+0.5*s,y+0.5*s,cw-s,ch-s);}
     ctx.fillStyle=sf.dark?OFF:PETROL; ctx.fillRect(x,y,cw,edge);
     drawBlock(ctx,b,x+pad,y+edge+pad,'left',col); drawBrand(ctx,s,x+pad,y+ch-pad*0.8-bh,col,k,'left');
-    return {photo:pr,text:null,c:surfC(o.surf)};
+    return {photo:pr,text:{rect:{x,y,w:cw,h:ch},anchor:{x:x/W,y:y/H},axis:'xy'},c:surfC(o.surf)};
   },
   column(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.column, col=colsSurf(o.surf), pw=Math.round(W*0.55), pad=46*s, cwid=W-pw-2*pad;
@@ -685,10 +750,13 @@ const R={
     fillSurf(ctx,o.surf,W,H,{x:pw,y:0,w:W-pw,h:H});
     const b=buildBlock(ctx,s,cwid,{titleMax:68,titleMin:26,titleLines:5,notesLines:4,notesMax:24,notesMin:15,brandSize:18,scale:o.scale});
     const k=fitK(ctx,s,cwid,0.8), bh=brandH(s,k);
-    drawBlock(ctx,b,pw+pad,Math.max(pad+50*s,H*0.3-b.h/2),'left',col);
-    hline(ctx,pw+pad,W-pad,H-pad-50*s-bh-24*s,1.5*s,col.line);
+    const ruleY=H-pad-50*s-bh-24*s, minY=pad+50*s, maxY=Math.max(minY,ruleY-40*s-b.h);
+    const a=anchorOf(o); let ty=a?a.y*H:Math.max(minY,H*0.3-b.h/2); ty=clamp(ty,minY,maxY);
+    if(env.drag&&Math.abs(ty+b.h/2-H/2)<14*s){ty=H/2-b.h/2;env.guides.push({h:0.5});}
+    drawBlock(ctx,b,pw+pad,ty,'left',col);
+    hline(ctx,pw+pad,W-pad,ruleY,1.5*s,col.line);
     drawBrand(ctx,s,pw+pad,H-pad-50*s-bh,col,k,'left');
-    return {photo:pr,text:null,c:surfC(o.surf)};
+    return {photo:pr,text:{rect:{x:pw+pad,y:ty,w:cwid,h:Math.max(b.h,1)},anchor:{x:(pw+pad)/W,y:ty/H},axis:'y'},c:surfC(o.surf)};
   },
   colorfoot(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.colorfoot, col=colsSurf(o.surf), pad=60*s, k=0.8, bh=brandH(s,k);
@@ -703,12 +771,12 @@ const R={
     return {photo:pr,text:null,c:surfC(o.surf)};
   },
   colorhead(ctx,W,H,src,env){
-    const s=W/1000, o=S.opt.colorhead, col=colsSurf(o.surf), pad=58*s, k=0.82, bh=brandH(s,k);
+    const s=W/1000, o=S.opt.colorhead, col=colsSurf(o.surf), pad=58*s, k=0.82, bh=brandH(s,k), top0=Math.max(pad,adTop(s));
     const b=buildBlock(ctx,s,W-2*90*s,{titleMax:90,titleMin:36,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
-    const ry=pad+bh+24*s, ty=ry+44*s, hh=Math.min(H*0.55,ty+b.h+pad);
+    const ry=top0+bh+24*s, ty=ry+44*s, hh=Math.min(H*0.55,ty+b.h+pad);
     const pr={x:0,y:hh,w:W,h:H-hh}; drawPhoto(ctx,src,pr);
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:hh});
-    drawBrand(ctx,s,W/2,pad,col,k,'center'); ctx.fillStyle=col.rule; ctx.fillRect(W/2-28*s,ry,56*s,2*s);
+    drawBrand(ctx,s,W/2,top0,col,k,'center'); ctx.fillStyle=col.rule; ctx.fillRect(W/2-28*s,ry,56*s,2*s);
     drawBlock(ctx,b,W/2,ty,'center',col);
     return {photo:pr,text:null,c:surfC(o.surf)};
   },
@@ -719,9 +787,10 @@ const R={
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
     const m=56*s, b=buildBlock(ctx,s,W-2*m-80*s,{titleMax:80,titleLines:2,notesLines:2,scale:o.scale});
     const brandTop=H-m-brandH(s);
-    let ph=brandTop-48*s-b.h-58*s-m; ph=clamp(ph,H*0.45,H*0.72);
-    const pr={x:m,y:m,w:W-2*m,h:ph}; drawPhoto(ctx,src,pr);
-    const areaTop=m+ph, ty=areaTop+Math.max(24*s,(brandTop-areaTop-b.h)/2);
+    const pt=Math.max(m,adTop(s));
+    let ph=brandTop-48*s-b.h-58*s-pt; ph=clamp(ph,H*0.42,H*0.72);
+    const pr={x:m,y:pt,w:W-2*m,h:ph}; drawPhoto(ctx,src,pr);
+    const areaTop=pt+ph, ty=areaTop+Math.max(24*s,(brandTop-areaTop-b.h)/2);
     drawBlock(ctx,b,W/2,ty,'center',col); drawBrand(ctx,s,W/2,brandTop,col);
     return {photo:pr,text:null,c:surfC(o.surf)};
   },
@@ -732,10 +801,11 @@ const R={
     const cw=W*0.8, pm=36*s, pw=cw-2*pm, bh=brandH(s);
     const b=buildBlock(ctx,s,pw-30*s,{titleMax:66,titleLines:2,notesLines:2,notesMax:26,scale:o.scale});
     const textH=(b.h?34*s+b.h:0)+50*s;
-    let ph=Math.min(pw*1.04,H-2*44*s-pm-textH-50*s-bh);
+    const t0=Math.max(36*s,adTop(s));
+    let ph=Math.min(pw*1.04,H-t0-44*s-pm-textH-50*s-bh);
     ph=Math.max(ph,H*0.3);
     const cardH=pm+ph+textH, total=cardH+50*s+bh;
-    const top=Math.max(36*s,(H-total)/2), left=(W-cw)/2, btop=top+cardH+50*s;
+    const top=Math.max(t0,(H-total)/2), left=(W-cw)/2, btop=top+cardH+50*s;
     const st=stats({x:W/2-250*s,y:btop,w:500*s,h:bh},W,H); const dim={v:st.v*0.7,sd:0,busy:1};
     const n=need(dim,'light',0.05);
     scrim(ctx,W,H,{key:'polB',axis:'y',mode:'light',bands:[{from:btop-10*s,to:H,fade:160*s,a:n.a}]},env);
@@ -750,8 +820,8 @@ const R={
   feuilleton(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.feuilleton, col=colsSurf(o.surf), m=64*s, k=0.8, bh=brandH(s,k);
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
-    drawBrand(ctx,s,m,m,col,k,'left');
-    const r1=m+bh+22*s; hline(ctx,m,W-m,r1,2.5*s,col.title); hline(ctx,m,W-m,r1+7*s,1*s,col.title);
+    const top0=Math.max(m,adTop(s)); drawBrand(ctx,s,m,top0,col,k,'left');
+    const r1=top0+bh+22*s; hline(ctx,m,W-m,r1,2.5*s,col.title); hline(ctx,m,W-m,r1+7*s,1*s,col.title);
     const b=buildBlock(ctx,s,W-2*m,{titleMax:92,titleMin:38,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
     const py=r1+40*s, pw=W-2*m, bot=H-m;
     const ph=clamp(bot-30*s-b.h-48*s-py,H*0.3,pw*0.96);
@@ -764,7 +834,7 @@ const R={
     const s=W/1000, o=S.opt.chapter, col=colsSurf(o.surf), bh=brandH(s,0.85), brandTop=H-60*s-bh;
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
     const brand=S.text.brand.trim().toUpperCase();
-    let ey=72*s;
+    let ey=Math.max(72*s,adTop(s)+10*s);
     if(brand){let sz=22*s; for(;;){ctx.font=`500 ${sz}px ${F_S}`; if(spacedW(ctx,brand,sz*0.4)<=W-160*s||sz<=10*s)break; sz-=0.5*s;}
       ctx.textBaseline='middle'; ctx.fillStyle=col.eyebrow; drawSpaced(ctx,brand,W/2+sz*0.2,ey+sz*0.6,sz*0.4,'center'); ey+=sz*1.2;}
     const b=buildBlock(ctx,s,W-2*100*s,{titleMax:86,titleMin:36,titleLines:3,notesLines:2,notesMax:25,skip:{brand:1},scale:o.scale});
@@ -779,7 +849,7 @@ const R={
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
     const pw=W*0.66, px=(W-pw)/2;
     const b=buildBlock(ctx,s,pw,{titleMax:54,titleMin:28,titleLines:3,notesLines:2,notesMax:21,notesMin:15,brandSize:17,ruleW:40,scale:o.scale});
-    const py=104*s, ph=clamp(brandTop-60*s-b.h-60*s-py,H*0.35,pw*1.36);
+    const py=Math.max(104*s,adTop(s)+12*s), ph=clamp(brandTop-60*s-b.h-60*s-py,H*0.35,pw*1.36);
     const pr={x:px,y:py,w:pw,h:ph};
     ctx.save(); ctx.shadowColor='rgba(26,26,26,0.26)'; ctx.shadowBlur=34*s; ctx.shadowOffsetY=16*s; ctx.fillStyle=INK; ctx.fillRect(px,py,pw,ph); ctx.restore();
     drawPhoto(ctx,src,pr);
@@ -791,7 +861,7 @@ const R={
     fillSurf(ctx,o.surf,W,H,{x:0,y:0,w:W,h:H});
     const b=buildBlock(ctx,s,W-2*m,{titleMax:94,titleMin:40,titleLines:3,notesLines:2,notesMax:26,scale:o.scale});
     const brandTop=H-m-bh, ty=brandTop-50*s-b.h;
-    const px=W*0.26, pw=W-px-m, ph=clamp(ty-60*s-m,H*0.3,pw*1.3);
+    const px=W*0.3, pw=W-px-m, ph=clamp(ty-60*s-m,H*0.3,pw*1.3);
     const pr={x:px,y:m,w:pw,h:ph}; drawPhoto(ctx,src,pr);
     drawBlock(ctx,b,m,ty,'left',col); drawBrand(ctx,s,m,brandTop,col,k,'left');
     return {photo:pr,text:null,c:surfC(o.surf)};
@@ -808,7 +878,7 @@ function renderMain(){
   const W=mainCv.width, H=mainCv.height, ctx=mainCv.getContext('2d');
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; ctx.clearRect(0,0,W,H);
   const env={kind:'main',drag:!!(DRAG&&DRAG.type==='text'),guides:[]};
-  const r=R[S.tpl](ctx,W,H,S.prev,env); LAST={r,W,H};
+  const r=drawPin(ctx,W,H,S.prev,env); LAST={r,W,H};
   /* Stößt der Text an den Rand, rückt der Bezugspunkt mit: Zurückziehen wirkt sofort, ohne toten Bereich */
   if(env.drag&&r.text&&DRAG&&DRAG.type==='text'){
     const o=S.opt[S.tpl], u=W/1000;
@@ -820,7 +890,7 @@ function renderMain(){
   }
   if(env.drag&&r.text){
     const k=W/1000; ctx.save(); ctx.strokeStyle='rgba(134,181,178,0.95)'; ctx.lineWidth=2*k; ctx.setLineDash([10*k,8*k]);
-    const t=r.text.rect; if(false)ctx.strokeRect(t.x+k,t.y+k,t.w-2*k,t.h-2*k); else{rr(ctx,t.x-12*k,t.y-12*k,t.w+24*k,t.h+24*k,8*k);ctx.stroke();}
+    const t=r.text.rect; rr(ctx,t.x-12*k,t.y-12*k,t.w+24*k,t.h+24*k,8*k); ctx.stroke();
     ctx.setLineDash([]); ctx.strokeStyle='rgba(134,181,178,0.9)'; ctx.lineWidth=1.5*k;
     env.guides.forEach(g=>{ctx.beginPath(); if(g.v!=null){ctx.moveTo(g.v*W,0);ctx.lineTo(g.v*W,H);} else {ctx.moveTo(0,g.h*H);ctx.lineTo(W,g.h*H);} ctx.stroke();});
     ctx.restore();
@@ -878,7 +948,7 @@ function renderThumbs(){
     const W=Math.round(Math.min(w*dpr,320)), H=Math.round(W*1.5);
     if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
     const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; ctx.clearRect(0,0,W,H);
-    R[t.key](ctx,W,H,S.prev,{kind:'thumb',drag:false,guides:[]});
+    drawPin(ctx,W,H,S.prev,{kind:'thumb',drag:false,guides:[]},t.key);
   });
 }
 
@@ -915,6 +985,11 @@ function buildStyle(){
     b.addEventListener('click',()=>{o.pos=null; schedule(); toast('Position wird wieder automatisch gewählt.');});
     const h=document.createElement('span'); h.className='hint'; h.textContent='Oder Text im Bild ziehen.';
     row.style.flexWrap='wrap'; row.append(b,h); box.append(row);
+  }
+  if(!t.drag){
+    const h=document.createElement('p'); h.className='hint';
+    h.textContent='Bei dieser Vorlage steht der Text fest auf seiner Fläche. Zum Verschieben eine Vorlage aus „Auf dem Foto“ oder Etikett, Notiz oder Spalte wählen.';
+    box.append(h);
   }
 }
 function changed(){schedule();schedThumbs();saveState();}
@@ -1028,6 +1103,8 @@ const extraSeg=$('extraSeg');
   extraSeg.append(b);
 });
 $('url').addEventListener('change',e=>{S.url=e.target.checked; changed();});
+$('ad').addEventListener('change',e=>{S.ad=e.target.checked; adNote(); changed();});
+function adNote(){$('adNote').hidden=S.ad;}
 
 /* ---------- Foto ---------- */
 function syncZoom(){$('zoom').value=String(S.crop.z);$('zoomOut').textContent=Math.round(S.crop.z*100)+' %';}
@@ -1120,7 +1197,7 @@ async function exportBlob(W){
   analyze();
   const H=Math.round(W*1.5), c=mk(W,H), ctx=c.getContext('2d');
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
-  R[S.tpl](ctx,W,H,S.full,{kind:'export',drag:false,guides:[]});
+  drawPin(ctx,W,H,S.full,{kind:'export',drag:false,guides:[]});
   const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',1));
   c.width=1; c.height=1; return blob;
 }
@@ -1159,12 +1236,13 @@ window.addEventListener('resize',fitViewport);
 if(window.ResizeObserver)new ResizeObserver(layout).observe($('stage')); else window.addEventListener('resize',layout);
 
 /* Testzugang für automatische Prüfungen */
-window.__rofpins={S,R,TPLS,exportBlob,selectTpl,setTab,renderThumbs,LAST:()=>LAST};
+window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,LAST:()=>LAST};
 
 /* ---------- Start ---------- */
 loadState();
 ['brand','name','notes','extra'].forEach(id=>{$(id).value=S.text[id];});
 $('url').checked=S.url;
+$('ad').checked=S.ad; adNote();
 extraSeg.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String((i===0)===(S.text.extraPos==='top'))));
 checkWarn();
 buildTemplates(); buildStyle(); fitViewport();

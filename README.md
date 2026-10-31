@@ -41,13 +41,17 @@ Eigener WebP-Konverter, weil Safari auf dem iPad selbst kein WebP speichern kann
 - Später geplant: JPEG XL, sobald WordPress `.jxl` annimmt.
 
 ## RoF Pins (Unterseite `pin/`)
-Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest. Version 2: neu aufgebaut wie ein Foto-Editor.
+Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest. Version 4.
 - Adresse: `…/RoF-bildstudio/pin/`, lässt sich einzeln auf den Home-Bildschirm legen.
 - Vorschau immer sichtbar, Menüleiste unten (Vorlagen, Text, Stil, Foto), die Seite scrollt nie. iPad quer: Bedienung rechts.
-- Direkt im Bild bearbeiten: Text mit dem Finger verschieben, Foto ziehen für den Ausschnitt, zwei Finger zum Zoomen. Hilfslinien rasten mittig ein.
-- 12 Vorlagen: Papier (Passepartout, Band, Polaroid, Etikett), Auf dem Foto (Freistehend, Seitlich, Zentriert, Milchglas), Editorial (Magazin, Bogenfenster, Geteilt, Rahmenlinie).
-- Optionale Zusatzzeile, oben als Rubrik oder unten als Hinweis. Flächen in Papier, Weiß, Petrol oder Dunkel, Textgröße 80 bis 130 %.
-- Schatten hinter dem Text werden stufenlos aus der Bildhelligkeit berechnet (Ziel: Kontrast mindestens 4,5 : 1) und gleiten beim Verschieben weich mit.
+- **WERBUNG im Bild:** Jeder Pin trägt oben links ein gut lesbares „WERBUNG“ (dunkles Milchglas, cremeweiße Schrift), immer an derselben Stelle. Inhalte oben links rücken darunter. Abschaltbar im Reiter „Text“, nur für Pins zu Artikeln ohne Affiliate-Link. Grund: Pinterest zeigt im Feed keine Beschreibung und vom Titel oft nichts, nur das Bild ist vor dem Klick sicher sichtbar.
+- 25 Vorlagen in vier Gruppen: Auf dem Foto (11), Mit Fläche (8), Papierseite (6).
+- Text verschieben: Alle Vorlagen „Auf dem Foto“ sowie Etikett, Notiz und Spalte. Text mit dem Finger ziehen, „Position automatisch“ setzt zurück. Bei den übrigen steht der Text fest auf seiner Fläche.
+- Foto ziehen für den Ausschnitt, zwei Finger zum Zoomen. Hilfslinien rasten mittig ein.
+- Titel mit eigenen Zeilenumbrüchen (Enter). Zahlen bleiben beim folgenden Wort.
+- Flächen: Off-White, Off-White Papier, Petrol, Braun, Braun Papier (Papier = dezente Papierstruktur).
+- Textgröße 80 bis 130 %: wirkt immer; größer darf bis zu zwei Zeilen mehr belegen.
+- Schatten hinter dem Text werden stufenlos aus der Bildhelligkeit berechnet (Ziel: Kontrast mindestens 4,5 : 1).
 - Ausgabe: JPEG mit Qualität 100 %, 2000 × 3000 oder 1000 × 1500 (2:3). Teilen/In Fotos sichern oder als Datei laden.
 - Texte und Einstellungen bleiben in diesem Browser gespeichert, Fotos nicht.
 - Schriften lokal im Ordner `pin/fonts/` (Playfair Display, Jost, Cormorant Garamond, SIL Open Font License, siehe `pin/fonts/LICENSE-OFL.txt`).

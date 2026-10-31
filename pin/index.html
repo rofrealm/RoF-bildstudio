@@ -99,6 +99,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stro
 /* Felder und Regler */
 .fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 10px}
 @media (min-width:900px) and (orientation:landscape){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.seg.surf{flex-wrap:wrap}.seg.surf button{flex:1 1 30%}
 @media (min-width:900px) and (orientation:landscape){.seg.surf{display:grid;grid-template-columns:1fr 1fr}}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -173,6 +174,10 @@ a.btn{text-decoration:none;color:var(--ink)}
           <div class="seg" id="extraSeg" role="group" aria-label="Position der Zusatzzeile" style="flex:1;min-width:0"></div>
           <label class="sw"><input id="url" type="checkbox" checked><span class="tr"></span>Webadresse</label>
         </div>
+        <div class="rowc">
+          <label class="sw"><input id="ad" type="checkbox" checked><span class="tr"></span>WERBUNG im Bild</label>
+        </div>
+        <p class="warn" id="adNote" hidden>Ohne WERBUNG im Bild: im Pin-Titel „Werbung |“ voranstellen. Ausschalten nur bei Artikeln ohne Affiliate-Link.</p>
         <p class="warn" id="warn" hidden></p>
       </div>
 
@@ -220,6 +225,6 @@ a.btn{text-decoration:none;color:var(--ink)}
     <div class="acts"><a class="btn" id="resDl" href="#" download="pin.jpg">Als Datei laden</a><button class="btn acc" id="resClose" type="button">Fertig</button></div>
   </div>
 </div>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

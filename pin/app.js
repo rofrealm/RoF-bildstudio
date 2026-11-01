@@ -1,4 +1,4 @@
-/* RoF Pins 4: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
+/* RoF Pins 5: Text im RoF-Design auf Stimmungsbilder für Pinterest. Alles läuft lokal im Browser, nichts wird hochgeladen. */
 (function(){
 "use strict";
 
@@ -58,8 +58,8 @@ const TPL={}; TPLS.forEach(t=>{TPL[t.key]=t;});
 const S={
   full:null, prev:null, isSample:true, imgId:0,
   crop:{x:0.5,y:0.5,z:1},
-  text:{brand:'House of Thêom', name:'Heaven’s Reserve', notes:'Pflaume, Rum und Zimt', extra:'', extraPos:'top'},
-  url:true, ad:true, tpl:'lower', size:2000, tab:'tpl',
+  text:{brand:'House of Thêom Heaven’s Reserve', name:'Pflaume, Rum und Zimt für kalte Abende', notes:'Duftverlauf und Haltbarkeit im Artikel', extra:'Gourmand', extraPos:'top'},
+  url:true, ad:true, brandK:1, tpl:'lower', size:2000, tab:'tpl',
   opt:{}
 };
 function resetOpt(){TPLS.forEach(t=>{S.opt[t.key]=Object.assign({color:'auto',align:'left',surf:'off',scale:1,pos:null},t.def);});}
@@ -73,6 +73,7 @@ function loadState(){
     if(d.text)Object.keys(S.text).forEach(k=>{if(typeof d.text[k]==='string')S.text[k]=d.text[k];});
     if(typeof d.url==='boolean')S.url=d.url;
     if(typeof d.ad==='boolean')S.ad=d.ad;
+    if(typeof d.brandK==='number')S.brandK=clamp(d.brandK,0.7,1.4);
     if(d.tpl&&TPL[d.tpl])S.tpl=d.tpl;
     if(d.size===1000||d.size===2000)S.size=d.size;
     if(d.opt)Object.keys(d.opt).forEach(k=>{if(S.opt[k]){const o=d.opt[k];['color','align'].forEach(p=>{if(typeof o[p]==='string')S.opt[k][p]=o[p];}); if(typeof o.surf==='string'){const v=SURF[o.surf]?o.surf:SURF_OLD[o.surf]; if(v&&TPL[k].ctl.includes('surf'))S.opt[k].surf=v;} if(typeof o.scale==='number')S.opt[k].scale=clamp(o.scale,0.8,1.3);}});
@@ -84,7 +85,7 @@ function saveState(){
   saveT=setTimeout(()=>{
     try{
       const opt={}; Object.keys(S.opt).forEach(k=>{const o=S.opt[k]; opt[k]={color:o.color,align:o.align,surf:o.surf,scale:o.scale};});
-      localStorage.setItem(STORE,JSON.stringify({text:S.text,url:S.url,ad:S.ad,tpl:S.tpl,size:S.size,opt}));
+      localStorage.setItem(STORE,JSON.stringify({text:S.text,url:S.url,ad:S.ad,brandK:S.brandK,tpl:S.tpl,size:S.size,opt}));
     }catch(_){}
   },400);
 }
@@ -226,13 +227,15 @@ function drawBlock(ctx,b,x,y,align,col){
     for(const l of it.lines){ctx.fillText(l,x,cy+it.lh/2);cy+=it.lh;}
   }
 }
-/* Wortmarke in Versalien (Buchstabenabstand 0,3em), darunter die Webadresse */
+/* Wortmarke in Versalien (Buchstabenabstand 0,3em), darunter die Webadresse.
+   S.brandK (Regler „Logo und Webadresse“ im Reiter Stil) vergrößert oder verkleinert beides in allen Vorlagen. */
 const WM='REALM OF FRAGRANCE', WEB='realmoffragrance.com';
-function brandH(s,k){k=k||1;return 24*s*k*1.2+(S.url?12*s*k+17*s*k*1.2:0);}
-function brandW(ctx,s,k){k=k||1;const L=24*s*k;ctx.font=`600 ${L}px ${F_L}`;return spacedW(ctx,WM,L*0.3);}
+function bK(){return S.brandK||1;}
+function brandH(s,k){k=(k||1)*bK();return 24*s*k*1.2+(S.url?12*s*k+17*s*k*1.2:0);}
+function brandW(ctx,s,k){k=(k||1)*bK();const L=24*s*k;ctx.font=`600 ${L}px ${F_L}`;return spacedW(ctx,WM,L*0.3);}
 function fitK(ctx,s,maxW,kMax){return Math.min(kMax||1,maxW/brandW(ctx,s,1));}
 function drawBrand(ctx,s,x,top,col,k,align){
-  k=k||1; align=align||'center'; ctx.textBaseline='middle'; const L=24*s*k;
+  k=(k||1)*bK(); align=align||'center'; ctx.textBaseline='middle'; const L=24*s*k;
   ctx.font=`600 ${L}px ${F_L}`; ctx.fillStyle=col.logo;
   drawSpaced(ctx,WM,align==='center'?x+L*0.15:x,top+L*0.6,L*0.3,align);
   if(S.url){const u=17*s*k; ctx.font=`400 ${u}px ${F_S}`; ctx.fillStyle=col.url; drawSpaced(ctx,WEB,x,top+L*1.2+12*s*k+u*0.6,u*0.06,align);}
@@ -243,13 +246,16 @@ function hline(ctx,x0,x1,y,h,c){ctx.fillStyle=c;ctx.fillRect(x0,y,x1-x0,h);}
    Dunkles Milchglas wie die Foto-Beschriftungen der Website, aber kräftiger (0,72), damit der Kontrast auch auf hellen Fotos über 4,5 : 1 bleibt.
    Grund: Pinterest zeigt im Feed keine Beschreibung und vom Titel oft nichts. Nur das Bild ist vor dem Klick sicher zu sehen. */
 const AD_TXT='WERBUNG';
+/* Schriftgröße 34 bleibt (im Handy-Raster rund 7 px hoch, kleiner wäre nicht mehr sicher lesbar).
+   Seit RoF Pins 5 schmaleres Kästchen und engere Buchstaben, damit das Label leichter wirkt. */
+const AD_FS=34, AD_PY=9, AD_X=36;
 function adGeom(ctx,s){
-  const fs=34*s, sp=fs*0.16, px=18*s, py=13*s;
+  const fs=AD_FS*s, sp=fs*0.1, px=13*s, py=AD_PY*s;
   ctx.font=`500 ${fs}px ${F_S}`; const tw=spacedW(ctx,AD_TXT,sp);
-  return {x:36*s,y:36*s,w:tw+2*px,h:fs+2*py,fs,sp,px};
+  return {x:AD_X*s,y:AD_X*s,w:tw+2*px,h:fs+2*py,fs,sp,px};
 }
 /* Unterkante des Labels plus Abstand: Inhalte oben links beginnen darunter */
-function adTop(s){return S.ad?(36+60+22)*s:0;}
+function adTop(s){return S.ad?(AD_X+AD_FS+2*AD_PY+22)*s:0;}
 function drawAd(ctx,s){
   const g=adGeom(ctx,s); ctx.save();
   ctx.fillStyle='rgba(24,18,12,0.72)'; rr(ctx,g.x,g.y,g.w,g.h,4*s); ctx.fill();
@@ -478,7 +484,7 @@ function photoBrand(ctx,W,H,s,mode,env,key,minA){
 function fullPhoto(ctx,W,H,src){const pr={x:0,y:0,w:W,h:H}; drawPhoto(ctx,src,pr); return pr;}
 /* Masthead mit großer Wortmarke über die ganze Breite (Magazin, Titelseite) */
 function masthead(ctx,W,H,s,m){
-  let ms=84*s; for(;;){ctx.font=`600 ${ms}px ${F_L}`; if(spacedW(ctx,WM,ms*0.25)<=W-2*m||ms<=20*s)break; ms-=1*s;}
+  let ms=84*s*Math.min(1,bK()); for(;;){ctx.font=`600 ${ms}px ${F_L}`; if(spacedW(ctx,WM,ms*0.25)<=W-2*m||ms<=20*s)break; ms-=1*s;}
   return {ms,top:Math.max(54*s,adTop(s)),h:ms};
 }
 const R={
@@ -505,7 +511,7 @@ const R={
   cover(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.cover, pr=fullPhoto(ctx,W,H,src);
     const m=64*s, M=masthead(ctx,W,H,s,m), ms=M.ms;
-    const mTop=M.top, mH=ms, ruleY=mTop+mH+14*s, uS=16*s, mBot=ruleY+(S.url?18*s+uS:4*s);
+    const mTop=M.top, mH=ms, ruleY=mTop+mH+14*s, uS=16*s*bK(), mBot=ruleY+(S.url?18*s+uS:4*s);
     const b=buildBlock(ctx,s,W-2*m,{titleMax:116,titleMin:50,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1);
     const minY=mBot+70*s, maxY=Math.max(minY,H-72*s-bhh);
@@ -526,7 +532,7 @@ const R={
   },
   masthead(ctx,W,H,src,env){
     const s=W/1000, o=S.opt.masthead, pr=fullPhoto(ctx,W,H,src);
-    const m=56*s, M=masthead(ctx,W,H,s,m), ms=M.ms, uS=16*s;
+    const m=56*s, M=masthead(ctx,W,H,s,m), ms=M.ms, uS=16*s*bK();
     const mBot=M.top+ms+(S.url?20*s+uS*1.2:6*s);
     const b=buildBlock(ctx,s,W-2*90*s,{titleMax:110,titleMin:46,titleLines:3,notesLines:2,scale:o.scale});
     const bw=Math.max(b.w,1), bhh=Math.max(b.h,1), x=(W-bw)/2;
@@ -979,6 +985,16 @@ function buildStyle(){
     r.addEventListener('input',()=>{o.scale=parseFloat(r.value)||1; out.textContent=Math.round(o.scale*100)+' %'; schedule(); schedThumbs(); saveState();});
     wr.append(r,out); g.append(lb,wr); box.append(g);
   }
+  { /* Logo und Webadresse: gilt für alle Vorlagen */
+    const g=document.createElement('div'); g.className='ctl inline';
+    const lb=document.createElement('label'); lb.className='lbl'; lb.textContent='Logo und Webadresse'; lb.htmlFor='brandK';
+    const wr=document.createElement('div'); wr.className='range';
+    const r=document.createElement('input'); r.type='range'; r.id='brandK'; r.min='0.7'; r.max='1.4'; r.step='0.01'; r.value=String(S.brandK);
+    const out=document.createElement('output'); out.textContent=Math.round(S.brandK*100)+' %';
+    r.addEventListener('input',()=>{S.brandK=parseFloat(r.value)||1; out.textContent=Math.round(S.brandK*100)+' %'; schedule(); schedThumbs(); saveState();});
+    r.addEventListener('dblclick',()=>{S.brandK=1; r.value='1'; out.textContent='100 %'; changed();});
+    wr.append(r,out); g.append(lb,wr); box.append(g);
+  }
   if(t.ctl.includes('reset')){
     const row=document.createElement('div'); row.className='rowc'; row.style.marginTop='0';
     const b=document.createElement('button'); b.type='button'; b.className='btn'; b.textContent='Position automatisch';
@@ -1097,7 +1113,7 @@ function checkWarn(){
   if(id!=='name')el.addEventListener('keydown',e=>{if(e.key==='Enter')el.blur();}); /* im Titel macht Enter eine neue Zeile */
 });
 const extraSeg=$('extraSeg');
-[['top','Zusatz oben'],['bottom','Zusatz unten']].forEach(([v,t])=>{
+[['top','Rubrik oben'],['bottom','Als Hinweis unten']].forEach(([v,t])=>{
   const b=document.createElement('button'); b.type='button'; b.textContent=t; b.setAttribute('aria-pressed',String(S.text.extraPos===v));
   b.addEventListener('click',()=>{S.text.extraPos=v; extraSeg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); changed();});
   extraSeg.append(b);
@@ -1157,7 +1173,7 @@ function slug(t){
   return (t||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
     .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'pin';
 }
-function fileName(){return `pin-${slug(S.text.name)}-${slug(TPL[S.tpl].name)}.jpg`;}
+function fileName(){return `pin-${slug(S.text.brand.trim()||S.text.name)}-${slug(TPL[S.tpl].name)}.jpg`;}
 function saveInfo(){
   const W=S.size, H=W*1.5; let t=`${W} × ${H} Pixel, JPEG mit Qualität 100 %.`;
   if(!S.isSample&&S.full&&LAST&&LAST.r.photo){

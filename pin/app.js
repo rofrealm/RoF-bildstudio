@@ -689,11 +689,11 @@ function glassPanel(ctx,W,H,src,rect,r,env,key,pref,flat){
    und vom Titel oft nichts; Werbung muss schon in der Vorschau-Kachel erkennbar sein.
    Größe bleibt so, dass die Schrift auch bei 236 Pixel Feedbreite lesbar ist (Versalhöhe rund 5 Pixel).
    Seit RoF Pins 6 steht das Label auf derselben Randlinie wie der Inhalt der Vorlage und nimmt die Farbe seines Untergrunds auf:
-   Glas: helles Milchglas auf dunklem, dunkles Rauchglas auf hellem Grund. Linie: nur feine Kontur. Fläche: Akzentfarbe. */
-const AD_TXT='WERBUNG', AD_FS=33, AD_Y=40;
+   Glas: Ton in Ton mit dem Untergrund (dunkler Grund: dunkles Rauchglas, helle Schrift). Linie: feine Kontur. Fläche: Akzentfarbe. */
+const AD_TXT='WERBUNG', AD_FS=32, AD_Y=40;
 function adGeom(ctx,s,W,mx){
-  const fs=AD_FS*s, sp=fs*0.12, f=`600 ${fs}px ${F_S}`; ctx.font=f;
-  const tw=spacedW(ctx,AD_TXT,sp), px=fs*0.62, h=fs*1.68, w=tw+2*px;
+  const fs=AD_FS*s, sp=fs*0.16, f=`600 ${fs}px ${F_S}`; ctx.font=f;
+  const tw=spacedW(ctx,AD_TXT,sp), px=fs*0.6, h=fs*1.6, w=tw+2*px;
   const x=S.adSide==='right'?W-mx-w:mx;
   return {x,y:AD_Y*s,w,h,fs,sp,px,f};
 }
@@ -712,15 +712,15 @@ function backdrop(ctx,g,s){
   ax.drawImage(cv,x0,y0,bw,bh,0,0,tw,th);
   const id=ax.getImageData(0,0,tw,th), d=id.data;
   const ix0=Math.floor((g.x-x0)/bw*tw), ix1=Math.ceil((g.x+g.w-x0)/bw*tw), iy0=Math.floor((g.y-y0)/bh*th), iy1=Math.ceil((g.y+g.h-y0)/bh*th);
-  let s1=0,s2=0,n=0;
+  let s1=0,s2=0,n=0; const rgb=[0,0,0];
   for(let yy=Math.max(0,iy0);yy<Math.min(th,iy1);yy++)for(let xx=Math.max(0,ix0);xx<Math.min(tw,ix1);xx++){
-    const j=(yy*tw+xx)*4, v=(0.2126*d[j]+0.7152*d[j+1]+0.0722*d[j+2])/255; s1+=v; s2+=v*v; n++;
+    const j=(yy*tw+xx)*4, v=(0.2126*d[j]+0.7152*d[j+1]+0.0722*d[j+2])/255; s1+=v; s2+=v*v; n++; rgb[0]+=d[j]; rgb[1]+=d[j+1]; rgb[2]+=d[j+2];
   }
-  const v=n?s1/n:0.5, sd=n?Math.sqrt(Math.max(0,s2/n-v*v)):0.1;
+  const v=n?s1/n:0.5, sd=n?Math.sqrt(Math.max(0,s2/n-v*v)):0.1; if(n){rgb[0]/=n;rgb[1]/=n;rgb[2]/=n;} else rgb.fill(128);
   for(let i=0;i<d.length;i+=4){const l=0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2]; d[i]=l+(d[i]-l)*1.35; d[i+1]=l+(d[i+1]-l)*1.35; d[i+2]=l+(d[i+2]-l)*1.35;}
   ax.putImageData(id,0,0);
   const b=tmp('bdB',tw*3,th*3), bx=b.getContext('2d'); bx.imageSmoothingEnabled=true; bx.imageSmoothingQuality='high'; bx.drawImage(a,0,0,b.width,b.height);
-  return {cv:b,x0,y0,bw,bh,v,sd};
+  return {cv:b,x0,y0,bw,bh,v,sd,rgb};
 }
 function capH(ctx,font,fs){
   ctx.font=font; const m=ctx.measureText('W');
@@ -731,35 +731,33 @@ function drawAd(ctx,W,H,s,mx){
   let textCol, c=7;
   ctx.save();
   if(st==='solid'){
+    /* Fläche: Akzentfarbe, flach, nur eine feine helle Kante */
     const bg=solidAdHex();
-    ctx.shadowColor='rgba(0,0,0,0.2)'; ctx.shadowBlur=14*s; ctx.shadowOffsetY=4*s;
     ctx.fillStyle=bg; rr(ctx,g.x,g.y,g.w,g.h,r); ctx.fill();
-    ctx.shadowColor='transparent';
-    glassEdge(ctx,g.x,g.y,g.w,g.h,r,s,0.55,false);
+    const lw=1.2*s; ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=lw; rr(ctx,g.x+lw/2,g.y+lw/2,g.w-lw,g.h-lw,Math.max(0,r-lw/2)); ctx.stroke();
     textCol=CARD; c=contrastL(relLum(hexRgb(bg)),relLum(hexRgb(CARD)));
   }else{
-    const bd=backdrop(ctx,g,s), darkBg=bd.v<0.5;
-    /* Glas: Tönung in der Gegenfarbe des Untergrunds. Linie: Tönung im Ton des Untergrunds, nur so kräftig wie nötig. */
-    const lightText=st==='glass'?!darkBg:darkBg;
-    const tint=lightText?[34,27,20]:[250,247,242], tv=lumHex(rgbHex(tint));
-    /* Rauchglas auf hellem Grund braucht mehr Deckkraft, sonst wirkt es grau statt klar */
-    const aMin=st==='glass'?(lightText?lerp(0.94,0.74,S.d.glass):lerp(0.9,0.56,S.d.glass)):0.12;
-    const n=needTint(bd.v,bd.sd,tv,lightText?0.985:0.13,aMin);
-    ctx.shadowColor=`rgba(0,0,0,${st==='glass'?0.2:0.12})`; ctx.shadowBlur=16*s; ctx.shadowOffsetY=4*s;
-    ctx.fillStyle=rgbHex(tint); rr(ctx,g.x,g.y,g.w,g.h,r); ctx.fill(); ctx.shadowColor='transparent';
+    /* Glas (Standard): Ton in Ton. Das Label nimmt die Farbe seines Untergrunds auf, auf dunklem Grund abgedunkelt
+       mit heller Schrift, auf hellem Grund aufgehellt mit dunkler Schrift. So trägt es dieselben Farben wie der Pin,
+       statt als helle Fläche herauszustechen. Linie: nur so viel Tönung wie für den Kontrast nötig, dazu eine Kontur. */
+    const bd=backdrop(ctx,g,s), darkBg=bd.v<0.55, lightText=darkBg;
+    let tint, aMin;
+    if(st==='glass'){
+      tint=darkBg?bd.rgb.map(v=>v*0.3):bd.rgb.map(v=>v*0.22+252*0.78);
+      aMin=lerp(0.66,0.36,S.d.glass);
+    }else{tint=darkBg?[30,24,18]:[250,247,242]; aMin=0.12;}
+    tint=tint.map(Math.round);
+    const tv=lumHex(rgbHex(tint)), n=needTint(bd.v,bd.sd,tv,lightText?0.965:0.13,aMin);
     ctx.save(); rr(ctx,g.x,g.y,g.w,g.h,r); ctx.clip();
-    const lens=1.08, cx=g.x+g.w/2, cy=g.y+g.h/2;
-    ctx.translate(cx,cy); ctx.scale(lens,lens); ctx.translate(-cx,-cy);
-    ctx.drawImage(bd.cv,bd.x0,bd.y0,bd.bw,bd.bh);
-    ctx.restore();
-    ctx.save(); rr(ctx,g.x,g.y,g.w,g.h,r); ctx.clip();
+    const lens=1.04, cx=g.x+g.w/2, cy=g.y+g.h/2;
+    ctx.save(); ctx.translate(cx,cy); ctx.scale(lens,lens); ctx.translate(-cx,-cy);
+    ctx.drawImage(bd.cv,bd.x0,bd.y0,bd.bw,bd.bh); ctx.restore();
     ctx.fillStyle=`rgba(${tint.join(',')},${n.a.toFixed(4)})`; ctx.fillRect(g.x,g.y,g.w,g.h);
     ctx.restore();
-    if(st==='line'){
-      const lw=1.6*s; ctx.strokeStyle=lightText?'rgba(255,253,250,0.92)':'rgba(36,28,22,0.85)'; ctx.lineWidth=lw;
-      rr(ctx,g.x+lw/2,g.y+lw/2,g.w-lw,g.h-lw,Math.max(0,r-lw/2)); ctx.stroke();
-    }else glassEdge(ctx,g.x,g.y,g.w,g.h,r,s,lightText?0.7:1,false);
-    textCol=lightText?'#FFFDFA':'#2A2018'; c=n.c;
+    const lw=(st==='line'?1.6:1.1)*s;
+    ctx.strokeStyle=st==='line'?(lightText?'rgba(246,243,238,0.9)':'rgba(42,32,24,0.8)'):(lightText?'rgba(255,255,255,0.2)':'rgba(42,32,24,0.16)');
+    ctx.lineWidth=lw; rr(ctx,g.x+lw/2,g.y+lw/2,g.w-lw,g.h-lw,Math.max(0,r-lw/2)); ctx.stroke();
+    textCol=lightText?'#F6F3EE':'#2A2018'; c=n.c;
   }
   const ch=capH(ctx,g.f,g.fs);
   ctx.fillStyle=textCol; ctx.font=g.f; ctx.textBaseline='alphabetic';

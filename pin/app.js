@@ -119,11 +119,12 @@ function loadState(){
   }catch(_){}
 }
 let saveT=0;
+function saveNow(){try{localStorage.setItem(STORE,JSON.stringify({text:S.text,show:S.show,ad:S.ad,adStyle:S.adStyle,adSide:S.adSide,brandK:S.brandK,tpl:S.tpl,size:S.size,d:S.d,stab:S.stab,opt:optSnap(Object.keys(S.opt))}));}catch(_){}}
 function optSnap(keys){const opt={}; keys.forEach(k=>{const o=S.opt[k]; opt[k]={color:o.color,surf:o.surf,edge:o.edge,scale:o.scale};}); return opt;}
 function saveState(){
   clearTimeout(saveT);
   saveT=setTimeout(()=>{
-    try{localStorage.setItem(STORE,JSON.stringify({text:S.text,show:S.show,ad:S.ad,adStyle:S.adStyle,adSide:S.adSide,brandK:S.brandK,tpl:S.tpl,size:S.size,d:S.d,stab:S.stab,opt:optSnap(Object.keys(S.opt))}));}catch(_){}
+    saveNow();
   },400);
 }
 
@@ -1471,7 +1472,7 @@ $('saveBtn').addEventListener('click',()=>{
 $('saveCancel').addEventListener('click',()=>{$('saveSheet').hidden=true;});
 $('saveSheet').addEventListener('click',e=>{if(e.target===$('saveSheet'))$('saveSheet').hidden=true;});
 let toastT=0;
-function toast(msg){const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},3000);}
+function toast(msg){const t=$('toast'); t.onclick=null; t.style.cursor=''; t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},3000);}
 let resUrl=null;
 function showResult(blob,meta,name){
   if(resUrl)URL.revokeObjectURL(resUrl); resUrl=URL.createObjectURL(blob);
@@ -1530,8 +1531,36 @@ if(window.ResizeObserver)new ResizeObserver(layout).observe($('stage')); else wi
 /* Testzugang für automatische Prüfungen */
 window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,capRatio,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
 
+/* ---------- Version und automatische Aktualisierung ----------
+   Die Versionsnummer kommt aus dem Skript-Aufruf in index.html (app.js?v=…), es gibt also nur eine Stelle zum Ändern.
+   Auf dem Home-Bildschirm läuft die App beim Wechseln oft einfach weiter, ohne neu zu laden; dann käme eine neue
+   Version nie an. Darum wird beim Start und jedes Mal, wenn die App wieder sichtbar wird, nachgesehen, ob eine neuere
+   Version veröffentlicht ist. Ohne eigenes Foto wird sofort neu geladen, mit Foto erst auf Tippen (das Foto ginge sonst verloren).
+   Pro Version höchstens ein Versuch, damit es keine Schleife gibt. */
+const VERSION=(()=>{try{const s=document.currentScript&&document.currentScript.src, m=s&&s.match(/[?&]v=([\d.]+)/); return m?m[1]:'';}catch(_){return '';}})();
+let updT=0;
+function reloadFor(v){
+  try{sessionStorage.setItem('rofpins.upd',v);}catch(_){}
+  saveNow(); location.reload();
+}
+function checkUpdate(){
+  if(!VERSION||!window.fetch||navigator.onLine===false)return;
+  const now=Date.now(); if(now-updT<15000)return; updT=now;
+  fetch('./?u='+now,{cache:'no-store',credentials:'same-origin'}).then(r=>r.ok?r.text():'').then(html=>{
+    const m=html.match(/app\.js\?v=([\d.]+)/); if(!m||m[1]===VERSION)return;
+    let tried=''; try{tried=sessionStorage.getItem('rofpins.upd')||'';}catch(_){}
+    if(tried===m[1])return;
+    if(S.isSample){toast('Neue Version '+m[1]+' wird geladen …'); setTimeout(()=>reloadFor(m[1]),700); return;}
+    const tt=$('toast'); tt.textContent='Neue Version '+m[1]+' ist da. Hier tippen zum Laden (Foto danach neu wählen).';
+    tt.hidden=false; tt.style.cursor='pointer'; clearTimeout(toastT); toastT=setTimeout(()=>{tt.hidden=true;},12000);
+    tt.onclick=()=>{tt.onclick=null; reloadFor(m[1]);};
+  }).catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
+window.addEventListener('pageshow',e=>{if(e.persisted)checkUpdate();});
+
 /* ---------- Start ---------- */
-const VERSION='6.3'; $('ver').textContent=VERSION;
+$('ver').textContent=VERSION;
 loadState();
 ['brand','name','notes','extra'].forEach(id=>{$(id).value=S.text[id];});
 syncExtraSeg(); checkWarn();
@@ -1541,4 +1570,5 @@ layout(); setTab('tpl');
 selectTpl(S.tpl);
 fontsReady().then(()=>{schedule();renderThumbs();});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MW.clear();CAP.clear();schedule();renderThumbs();});
+setTimeout(checkUpdate,1500);
 })();

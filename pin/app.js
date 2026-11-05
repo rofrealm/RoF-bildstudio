@@ -206,7 +206,7 @@ function parseRich(text,rich){
   const paras=[]; let it=false;
   for(const line of src.split('\n')){
     const words=[]; let segs=[], cur='';
-    const endSeg=()=>{if(cur){segs.push({t:cur,it});cur='';}};
+    const endSeg=()=>{if(cur){splitSwash(cur,it).forEach(g=>segs.push(g));cur='';}};
     const endWord=()=>{endSeg(); if(segs.length)words.push(segs); segs=[];};
     for(const ch of Array.from(line)){
       if(rich&&ch==='*'){endSeg(); it=!it; continue;}
@@ -218,8 +218,38 @@ function parseRich(text,rich){
   }
   return paras;
 }
+/* Kursive Schwungbuchstaben: Playfair Display hat in der Kursiven bei J, K, N, Q, T, X, Y, Z und w, z verzierte Formen
+   mit Schleifen und Schwüngen (so ist die Schrift gezeichnet, im Stil alter Kupferstich-Schriften). Neben den übrigen,
+   ruhigen Kursiven wirken sie wie Ausreißer. Diese Zeichen werden aus der aufrechten Playfair genommen und im Winkel
+   der Kursiven geneigt (gemessen: Großbuchstaben 15°, Kleinbuchstaben 16°). Gleiche Strichstärke und Größe, keine Schnörkel. */
+const SWASH=/[JKNQTXYZwz]/;
+function splitSwash(text,it){
+  if(!it||!SWASH.test(text))return [{t:text,it}];
+  /* jedes Ersatzzeichen als eigener Abschnitt: Messen und Zeichnen nutzen dann exakt dieselbe Breite */
+  const out=[]; let cur='';
+  for(const ch of Array.from(text)){
+    if(SWASH.test(ch)){if(cur){out.push({t:cur,it:true}); cur='';} out.push({t:ch,it:true,obl:true});}
+    else cur+=ch;
+  }
+  if(cur)out.push({t:cur,it:true});
+  return out;
+}
+/* Abstand von der Textmitte (textBaseline „middle“) zur Grundlinie, aus echten Pixeln bestimmt wie capRatio */
+const MIDB=new Map();
+function midToBase(font){
+  const key=font.replace(/\d+(\.\d+)?px/,'200px'); const hit=MIDB.get(key); if(hit!=null)return hit;
+  const c=document.createElement('canvas'); c.width=400; c.height=400;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.font=key; x.textBaseline='middle'; x.fillStyle='#000'; x.fillText('H',60,150);
+  const d=x.getImageData(0,0,400,400).data; let bot=-1;
+  for(let y=399;y>=0&&bot<0;y--)for(let xx=0;xx<400;xx++){if(d[(y*400+xx)*4+3]>127){bot=y;break;}}
+  let r=bot>=0?(bot+1-150)/200:0.3; if(!(r>0.05&&r<0.6))r=0.3;
+  let ready=true; try{if(document.fonts&&document.fonts.check)ready=document.fonts.check(key,'H');}catch(_){}
+  if(ready)MIDB.set(key,r);
+  return r;
+}
+const SLANT_UC=Math.tan(15*Math.PI/180), SLANT_LC=Math.tan(16*Math.PI/180);
 function wordText(w){return w.map(g=>g.t).join('');}
-function wordW(ctx,w,ff,z){let x=0; for(const g of w)x+=mw(ctx,ff(z,g.it),g.t); return x;}
+function wordW(ctx,w,ff,z){let x=0; for(const g of w)x+=g.obl?oblGeom(ctx,g.t,ff,z).adv:mw(ctx,ff(z,g.it),g.t); return x;}
 function lineW(ctx,line,ff,z){const sp=mw(ctx,ff(z,false),' '); let x=0; line.forEach((w,i)=>{x+=wordW(ctx,w,ff,z)+(i?sp:0);}); return x;}
 /* Zahlen bleiben beim nächsten Wort ("7 Herbstdüfte"), damit keine Zahl allein am Zeilenende hängt */
 function unitsOf(words){
@@ -278,8 +308,29 @@ function drawRichLine(ctx,line,ff,z,x,y,align){
   let cx=align==='center'?x-w/2:(align==='right'?x-w:x); ctx.textAlign='left';
   line.forEach((wd,i)=>{
     if(i)cx+=sp;
-    for(const g of wd){const f=ff(z,g.it); ctx.font=f; ctx.fillText(g.t,cx,y); cx+=mw(ctx,f,g.t);}
+    for(const g of wd){
+      const f=ff(z,g.it); ctx.font=f;
+      if(g.obl){cx+=drawObl(ctx,g.t,ff,z,cx,y); continue;}
+      ctx.fillText(g.t,cx,y);
+      cx+=mw(ctx,f,g.t);
+    }
   });
+}
+/* Ersatzzeichen: aufrechte Form, an der Grundlinie geneigt. Breite = die schmalere von aufrechter und kursiver Form
+   (die kursiven Schwungformen von J, Q, Y sind breiter, die aufrechten w, N breiter); ist die aufrechte Form breiter,
+   wird sie leicht schmaler gesetzt (höchstens auf 82 %). Die Neigung verschiebt die Form optisch nach rechts;
+   das wird um die halbe Neigung über die Buchstabenhöhe ausgeglichen. Messen und Zeichnen nutzen dieselben Werte. */
+function oblGeom(ctx,ch,ff,z){
+  const fi=ff(z,true), fr=ff(z,false), up=ch===ch.toUpperCase(), k=up?SLANT_UC:SLANT_LC;
+  const ai=mw(ctx,fi,ch), ar=mw(ctx,fr,ch), sx=clamp(ai*1.04/ar,0.82,1), adv=ar*sx;
+  const h=capRatio(fr,up?'H':'x')*z;
+  return {fr,k,sx,adv,dx:-k*h/2};
+}
+function drawObl(ctx,ch,ff,z,x,y){
+  const g=oblGeom(ctx,ch,ff,z), yb=y+midToBase(g.fr)*z, bl=ctx.textBaseline;
+  ctx.save(); ctx.font=g.fr; ctx.textBaseline='alphabetic'; ctx.translate(x+g.dx,yb); ctx.transform(g.sx,0,-g.k,1,0,0); ctx.fillText(ch,0,0); ctx.restore();
+  ctx.textBaseline=bl;
+  return g.adv;
 }
 function rr(ctx,x,y,w,h,r){r=Math.max(0,Math.min(r,w/2,h/2));ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 /* Design-Werte als Hilfen: Luft (Abstände), Ränder, Ecken */
@@ -731,14 +782,14 @@ function backdrop(ctx,g,s){
    (Fehler in 6.0 bis 6.2: Text saß auf dem iPad zu hoch). Stattdessen wird ein „H“ einmal unsichtbar in großer Schrift
    gezeichnet und die Höhe an den echten Pixeln abgezählt. Ergebnis je Schrift gemerkt, neu bestimmt sobald Schriften geladen sind. */
 const CAP=new Map();
-function capRatio(font){
-  const key=font.replace(/\d+(\.\d+)?px/,'200px'); const hit=CAP.get(key); if(hit)return hit;
+function capRatio(font,chr){
+  chr=chr||'H'; const fk=font.replace(/\d+(\.\d+)?px/,'200px'), key=fk+'|'+chr; const hit=CAP.get(key); if(hit)return hit;
   const c=document.createElement('canvas'); c.width=400; c.height=300;
-  const x=c.getContext('2d',{willReadFrequently:true}); x.font=key; x.textBaseline='alphabetic'; x.fillStyle='#000'; x.fillText('H',60,250);
+  const x=c.getContext('2d',{willReadFrequently:true}); x.font=fk; x.textBaseline='alphabetic'; x.fillStyle='#000'; x.fillText(chr,60,250);
   const d=x.getImageData(0,0,400,300).data; let top=-1;
   for(let y=0;y<300&&top<0;y++)for(let xx=0;xx<400;xx++){if(d[(y*400+xx)*4+3]>127){top=y;break;}}
-  let r=top>=0?(250-top)/200:0.7; if(!(r>0.4&&r<0.95))r=0.7;
-  let ready=true; try{if(document.fonts&&document.fonts.check)ready=document.fonts.check(key,'H');}catch(_){}
+  const def=chr==='x'?0.5:0.7; let r=top>=0?(250-top)/200:def; if(!(r>0.3&&r<0.95))r=def;
+  let ready=true; try{if(document.fonts&&document.fonts.check)ready=document.fonts.check(fk,chr);}catch(_){}
   if(ready)CAP.set(key,r); /* erst merken, wenn die echte Schrift da ist */
   return r;
 }
@@ -1440,7 +1491,7 @@ const FONT_SPECS=['500 40px "Playfair Display"','600 40px "Playfair Display"','i
 function fontsReady(extra){
   if(!document.fonts||!document.fonts.load)return Promise.resolve();
   const t='AaÄäÖöÜüßÊêÉéÈèÂâ’„“REALM OF FRAGRANCE WERBUNG realmoffragrance.com '+(extra||'');
-  return Promise.all(FONT_SPECS.map(f=>document.fonts.load(f,t))).then(()=>{MW.clear();CAP.clear();}).catch(()=>{});
+  return Promise.all(FONT_SPECS.map(f=>document.fonts.load(f,t))).then(()=>{MW.clear();CAP.clear();MIDB.clear();}).catch(()=>{});
 }
 
 /* ---------- Speichern ---------- */
@@ -1529,7 +1580,7 @@ window.addEventListener('resize',fitViewport);
 if(window.ResizeObserver)new ResizeObserver(layout).observe($('stage')); else window.addEventListener('resize',layout);
 
 /* Testzugang für automatische Prüfungen */
-window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,capRatio,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
+window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,capRatio,midToBase,drawBlock,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
 
 /* ---------- Version und automatische Aktualisierung ----------
    Die Versionsnummer kommt aus dem Skript-Aufruf in index.html (app.js?v=…), es gibt also nur eine Stelle zum Ändern.
@@ -1569,6 +1620,6 @@ setImage(makeSample(),true);
 layout(); setTab('tpl');
 selectTpl(S.tpl);
 fontsReady().then(()=>{schedule();renderThumbs();});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MW.clear();CAP.clear();schedule();renderThumbs();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MW.clear();CAP.clear();MIDB.clear();schedule();renderThumbs();});
 setTimeout(checkUpdate,1500);
 })();

@@ -355,7 +355,10 @@ function drawBlock(ctx,b,x,y,align,col){
     if(it.k==='pill'){
       const px=ax(it.w);
       ctx.strokeStyle=col.pill; ctx.lineWidth=it.lw; rr(ctx,px+it.lw/2,cy+it.lw/2,it.w-it.lw,it.h-it.lw,S.d.round==='square'?3*it.lw:it.h/2); ctx.stroke();
-      ctx.fillStyle=col.pill; ctx.font=it.font; drawSpaced(ctx,it.text,px+it.w/2,cy+it.h/2+it.lw*0.3,it.sp,'center'); cy+=it.h; continue;
+      /* Versalien optisch genau mittig: Grundlinie = Mitte + halbe Versalhöhe */
+      const ch=capH(ctx,it.font,parseFloat(it.font.split(' ')[1])||16);
+      ctx.fillStyle=col.pill; ctx.font=it.font; ctx.textBaseline='alphabetic';
+      drawSpaced(ctx,it.text,px+it.w/2,cy+it.h/2+ch/2,it.sp,'center'); ctx.textBaseline='middle'; cy+=it.h; continue;
     }
     ctx.fillStyle=col[it.role];
     if(it.k==='sp'){ctx.font=it.font; drawSpaced(ctx,it.text,x,cy+it.h/2,it.sp,align);cy+=it.h;continue;}
@@ -722,8 +725,11 @@ function backdrop(ctx,g,s){
   const b=tmp('bdB',tw*3,th*3), bx=b.getContext('2d'); bx.imageSmoothingEnabled=true; bx.imageSmoothingQuality='high'; bx.drawImage(a,0,0,b.width,b.height);
   return {cv:b,x0,y0,bw,bh,v,sd,rgb};
 }
+/* Höhe der Großbuchstaben. Wichtig: immer an der Grundlinie messen. Die Ascent-Werte hängen von textBaseline ab;
+   mit „middle“ kommt nur etwa die halbe Höhe heraus, dann sitzt der Text zu hoch (Fehler in 6.0 und 6.1). */
 function capH(ctx,font,fs){
-  ctx.font=font; const m=ctx.measureText('W');
+  const bl=ctx.textBaseline; ctx.textBaseline='alphabetic'; ctx.font=font;
+  const m=ctx.measureText('H'); ctx.textBaseline=bl;
   return m.actualBoundingBoxAscent>0?m.actualBoundingBoxAscent:fs*0.7;
 }
 function drawAd(ctx,W,H,s,mx){
@@ -1512,7 +1518,7 @@ window.addEventListener('resize',fitViewport);
 if(window.ResizeObserver)new ResizeObserver(layout).observe($('stage')); else window.addEventListener('resize',layout);
 
 /* Testzugang für automatische Prüfungen */
-window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,toneHex,accentFor,solidAdHex};
+window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
 
 /* ---------- Start ---------- */
 loadState();

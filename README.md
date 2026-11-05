@@ -41,18 +41,19 @@ Eigener WebP-Konverter, weil Safari auf dem iPad selbst kein WebP speichern kann
 - Später geplant: JPEG XL, sobald WordPress `.jxl` annimmt.
 
 ## RoF Pins (Unterseite `pin/`)
-Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest. Version 4.
+Setzt Text im RoF-Design auf Stimmungsbilder für Pinterest. Version 6.
 - Adresse: `…/RoF-bildstudio/pin/`, lässt sich einzeln auf den Home-Bildschirm legen.
 - Vorschau immer sichtbar, Menüleiste unten (Vorlagen, Text, Stil, Foto), die Seite scrollt nie. iPad quer: Bedienung rechts.
-- **WERBUNG im Bild:** Jeder Pin trägt oben links ein gut lesbares „WERBUNG“ (dunkles Milchglas, cremeweiße Schrift), immer an derselben Stelle. Inhalte oben links rücken darunter. Abschaltbar im Reiter „Text“, nur für Pins zu Artikeln ohne Affiliate-Link. Grund: Pinterest zeigt im Feed keine Beschreibung und vom Titel oft nichts, nur das Bild ist vor dem Klick sicher sichtbar.
-- 25 Vorlagen in vier Gruppen: Auf dem Foto (11), Mit Fläche (8), Papierseite (6).
-- Text verschieben: Alle Vorlagen „Auf dem Foto“ sowie Etikett, Notiz und Spalte. Text mit dem Finger ziehen, „Position automatisch“ setzt zurück. Bei den übrigen steht der Text fest auf seiner Fläche.
-- Foto ziehen für den Ausschnitt, zwei Finger zum Zoomen. Hilfslinien rasten mittig ein.
-- Titel mit eigenen Zeilenumbrüchen (Enter). Zahlen bleiben beim folgenden Wort.
-- Flächen: Off-White, Off-White Papier, Petrol, Braun, Braun Papier (Papier = dezente Papierstruktur).
-- Textgröße 80 bis 130 %: wirkt immer; größer darf bis zu zwei Zeilen mehr belegen.
-- Schatten hinter dem Text werden stufenlos aus der Bildhelligkeit berechnet (Ziel: Kontrast mindestens 4,5 : 1).
+- **Großes Bedienfeld (iPad hoch):** Text, Stil und Foto öffnen sich so weit wie nötig, die Vorschau wird dafür kleiner. Tippen auf die Vorschau oder auf den Griff klappt ein, Tippen auf einen Reiter klappt auf.
+- **WERBUNG im Bild:** Jeder Pin trägt oben ein gut lesbares „WERBUNG“ auf derselben Randlinie wie der Inhalt. Stil Glas (passt sich dem Untergrund an: helles Milchglas auf dunklem, Rauchglas auf hellem Grund), Linie oder Fläche; Position oben links oder rechts. Größe fest, damit es auch in der Feed-Kachel (236 Pixel) lesbar ist. Einstellungen im Reiter Stil → Werbung. Abschalten nur für Pins zu Artikeln ohne Affiliate-Link. Grund: Werbung muss schon in der Vorschau-Kachel erkennbar sein.
+- 11 Vorlagen in drei Gruppen: Auf dem Foto (Magazin, Mittellinie, Ausgabe, Buchrücken), Glas (Glaskarte, Glasleiste, Glas-Etikett), Fläche und Papier (Fußband, Polaroid, Feuilleton, Papier im Website-Look). Gespeicherte Auswahl einer entfernten Vorlage öffnet Magazin.
+- **Glas:** weichgezeichnetes, gesättigtes Foto mit leichtem Linsen-Effekt, Tönung aus der Fotofarbe, Lichtkante. Die Tönung wird automatisch so kräftig, dass der Text mindestens 4,5 : 1 Kontrast hat.
+- **Stil-Reiter:** Vorlage (Fläche, Schrift hell/dunkel, Übergang, Textgröße, Position), Schrift (Elemente an/aus, Titel normal/kräftig, Akzentfarbe Petrol/Braun/aus dem Foto, Luft, Logo-Größe), Glas und Form (Glas matt bis klar, Ecken weich/eckig), Werbung, Stile (eigene Stile speichern, anwenden, löschen).
+- Titel: Enter = eigene Zeile, `*Wort*` = kursiv. Zahlen bleiben beim folgenden Wort.
+- Flächen: Off-White, Website-Papier, Petrol, Braun, Fototon (dunkler Ton aus dem Foto, mit Braun oder Petrol gemischt), jeweils auch mit dezenter Papierstruktur.
+- Foto: Ausschnitt ziehen, zwei Finger zoomen, Helligkeit und Wärme. Auf den Wert tippen setzt einen Regler zurück.
+- Text verschieben: Vorlagen „Auf dem Foto“, Glaskarte und Glas-Etikett. „Position automatisch“ setzt zurück. Hilfslinien rasten mittig ein.
 - Ausgabe: JPEG mit Qualität 100 %, 2000 × 3000 oder 1000 × 1500 (2:3). Teilen/In Fotos sichern oder als Datei laden.
-- Texte und Einstellungen bleiben in diesem Browser gespeichert, Fotos nicht.
-- Schriften lokal im Ordner `pin/fonts/` (Playfair Display, Jost, Cormorant Garamond, SIL Open Font License, siehe `pin/fonts/LICENSE-OFL.txt`).
+- Texte und Einstellungen bleiben in diesem Browser gespeichert (Einstellungen aus Version 5 werden übernommen), Fotos nicht.
+- Schriften lokal im Ordner `pin/fonts/` (Playfair Display, Figtree wie auf der Website, Cormorant Garamond; SIL Open Font License, siehe `pin/fonts/LICENSE-OFL.txt`).
 - Kein Upload, keine externen Skripte oder Schriften.

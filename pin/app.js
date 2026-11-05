@@ -725,13 +725,23 @@ function backdrop(ctx,g,s){
   const b=tmp('bdB',tw*3,th*3), bx=b.getContext('2d'); bx.imageSmoothingEnabled=true; bx.imageSmoothingQuality='high'; bx.drawImage(a,0,0,b.width,b.height);
   return {cv:b,x0,y0,bw,bh,v,sd,rgb};
 }
-/* Höhe der Großbuchstaben. Wichtig: immer an der Grundlinie messen. Die Ascent-Werte hängen von textBaseline ab;
-   mit „middle“ kommt nur etwa die halbe Höhe heraus, dann sitzt der Text zu hoch (Fehler in 6.0 und 6.1). */
-function capH(ctx,font,fs){
-  const bl=ctx.textBaseline; ctx.textBaseline='alphabetic'; ctx.font=font;
-  const m=ctx.measureText('H'); ctx.textBaseline=bl;
-  return m.actualBoundingBoxAscent>0?m.actualBoundingBoxAscent:fs*0.7;
+/* Höhe der Großbuchstaben, damit Versalien in Label und Kapsel genau mittig sitzen.
+   Nicht über measureText: dessen Ascent-Werte unterscheiden sich zwischen Browsern und hängen von textBaseline ab
+   (Fehler in 6.0 bis 6.2: Text saß auf dem iPad zu hoch). Stattdessen wird ein „H“ einmal unsichtbar in großer Schrift
+   gezeichnet und die Höhe an den echten Pixeln abgezählt. Ergebnis je Schrift gemerkt, neu bestimmt sobald Schriften geladen sind. */
+const CAP=new Map();
+function capRatio(font){
+  const key=font.replace(/\d+(\.\d+)?px/,'200px'); const hit=CAP.get(key); if(hit)return hit;
+  const c=document.createElement('canvas'); c.width=400; c.height=300;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.font=key; x.textBaseline='alphabetic'; x.fillStyle='#000'; x.fillText('H',60,250);
+  const d=x.getImageData(0,0,400,300).data; let top=-1;
+  for(let y=0;y<300&&top<0;y++)for(let xx=0;xx<400;xx++){if(d[(y*400+xx)*4+3]>127){top=y;break;}}
+  let r=top>=0?(250-top)/200:0.7; if(!(r>0.4&&r<0.95))r=0.7;
+  let ready=true; try{if(document.fonts&&document.fonts.check)ready=document.fonts.check(key,'H');}catch(_){}
+  if(ready)CAP.set(key,r); /* erst merken, wenn die echte Schrift da ist */
+  return r;
 }
+function capH(ctx,font,fs){return capRatio(font)*fs;}
 function drawAd(ctx,W,H,s,mx){
   const g=adGeom(ctx,s,W,mx), r=S.d.round==='square'?4*s:g.h/2, st=S.adStyle;
   let textCol, c=7;
@@ -1429,7 +1439,7 @@ const FONT_SPECS=['500 40px "Playfair Display"','600 40px "Playfair Display"','i
 function fontsReady(extra){
   if(!document.fonts||!document.fonts.load)return Promise.resolve();
   const t='AaÄäÖöÜüßÊêÉéÈèÂâ’„“REALM OF FRAGRANCE WERBUNG realmoffragrance.com '+(extra||'');
-  return Promise.all(FONT_SPECS.map(f=>document.fonts.load(f,t))).then(()=>{MW.clear();}).catch(()=>{});
+  return Promise.all(FONT_SPECS.map(f=>document.fonts.load(f,t))).then(()=>{MW.clear();CAP.clear();}).catch(()=>{});
 }
 
 /* ---------- Speichern ---------- */
@@ -1518,9 +1528,10 @@ window.addEventListener('resize',fitViewport);
 if(window.ResizeObserver)new ResizeObserver(layout).observe($('stage')); else window.addEventListener('resize',layout);
 
 /* Testzugang für automatische Prüfungen */
-window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
+window.__rofpins={S,R,TPLS,drawPin,exportBlob,selectTpl,setTab,renderThumbs,setImage,buildStyle,LAST:()=>LAST,AN:()=>AN,capRatio,toneHex,accentFor,solidAdHex,adGeom,buildBlock};
 
 /* ---------- Start ---------- */
+const VERSION='6.3'; $('ver').textContent=VERSION;
 loadState();
 ['brand','name','notes','extra'].forEach(id=>{$(id).value=S.text[id];});
 syncExtraSeg(); checkWarn();
@@ -1529,5 +1540,5 @@ setImage(makeSample(),true);
 layout(); setTab('tpl');
 selectTpl(S.tpl);
 fontsReady().then(()=>{schedule();renderThumbs();});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MW.clear();schedule();renderThumbs();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MW.clear();CAP.clear();schedule();renderThumbs();});
 })();

@@ -63,6 +63,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stro
 .logo .ey{font-family:var(--logo);font-weight:600;font-size:12px;letter-spacing:.3em;color:#A7CFCB;white-space:nowrap}
 @media (max-width:430px){.logo .ey{font-size:10px;letter-spacing:.2em}.pill{padding:0 12px}}
 .logo .nm{font-weight:500;font-size:19px;margin-top:4px}
+.logo .ver{font-weight:400;font-size:12px;color:var(--dim);margin-left:4px}
 .tgrp{display:flex;align-items:center;gap:8px}
 .pill{height:40px;padding:0 15px;border-radius:999px;background:var(--card);display:inline-flex;align-items:center;gap:7px;font-weight:500;font-size:15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
 .pill.acc{background:var(--accent);color:var(--accent-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
@@ -164,7 +165,7 @@ a.btn{text-decoration:none;color:var(--ink)}
 <body>
 <div class="app" id="app" data-big="0">
   <header class="top">
-    <div class="logo"><span class="ey">REALM OF FRAGRANCE</span><span class="nm">Pins</span></div>
+    <div class="logo"><span class="ey">REALM OF FRAGRANCE</span><span class="nm">Pins <span class="ver" id="ver"></span></span></div>
     <div class="tgrp">
       <button class="pill" id="openBtn" type="button"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 8"/></svg>Foto</button>
       <button class="pill acc" id="saveBtn" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Speichern</button>
@@ -233,6 +234,6 @@ a.btn{text-decoration:none;color:var(--ink)}
     <div class="acts"><a class="btn" id="resDl" href="#" download="pin.jpg">Als Datei laden</a><button class="btn acc" id="resClose" type="button">Fertig</button></div>
   </div>
 </div>
-<script src="app.js?v=6.2"></script>
+<script src="app.js?v=6.3"></script>
 </body>
 </html>

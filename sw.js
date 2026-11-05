@@ -10,8 +10,13 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;
-  /* Netz zuerst (damit Updates ankommen), sonst Cache */
-  e.respondWith(fetch(e.request).then(r => {
+  /* Netz zuerst (damit Updates ankommen), sonst Cache. Seiten (HTML) immer beim Server nachfragen statt aus dem
+     Browser-Zwischenspeicher zu nehmen: GitHub Pages erlaubt dort bis zu 10 Minuten, dann kam eine neue Version
+     (z. B. RoF Pins) erst verspätet an. Die Nachfrage ist klein, unveränderte Seiten werden nicht neu geladen. */
+  /* Nur Adressen auf / oder .html: dort leitet GitHub nicht um (umgeleitete Antworten lehnt Safari bei Seitenaufrufen ab) */
+  const page = /\/$|\.html$/.test(u.pathname);
+  const req = page ? fetch(u.href, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(e.request);
+  e.respondWith(req.then(r => {
     if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
     return r;
   }).catch(() => caches.match(e.request).then(r => r || caches.match('index.html'))));
